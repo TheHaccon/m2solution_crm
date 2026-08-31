@@ -1,0 +1,24 @@
+---
+description: Always document new features in docs/ when adding or changing product behavior
+alwaysApply: true
+---
+
+# Document every feature
+
+When you add or change a user-facing feature, API, or ops workflow, update `docs/` in the **same change**. Do not leave documentation for later.
+
+## Required
+
+1. Add or update `docs/features/<kebab-name>.md` using `docs/features/_TEMPLATE.md`.
+2. Link it from the table in `docs/README.md`.
+3. If run/setup/env changed, also update `docs/run.md` and `docs/architecture.md`.
+
+## What to capture
+
+Behavior, staff vs public access, routes/APIs, important files, and anything a later engineer would miss (share tokens, view counting, Docker ports).
+
+## Do not
+
+- Ship code-only PRs for new features
+- Dump implementation notes only in chat
+- Rewrite unrelated docs
