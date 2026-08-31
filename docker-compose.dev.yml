@@ -1,28 +1,35 @@
+name: crm-dev
+
 services:
   api:
     build:
       context: ./backend
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     environment:
-      DATABASE_URL: sqlite:////data/crm.db
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-crm}:${POSTGRES_PASSWORD}@db:5432/${DEV_POSTGRES_DB:-crm_dev}
       SECRET_KEY: ${SECRET_KEY:-dev-secret-change-me}
-      PUBLIC_APP_URL: ${PUBLIC_APP_URL:-http://localhost:5173}
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+      PUBLIC_APP_URL: ${DEV_PUBLIC_APP_URL:-http://localhost:5173}
+      CORS_ORIGINS: ${DEV_CORS_ORIGINS:-http://localhost:5173}
       SEED_EMAIL: ${SEED_EMAIL:-admin@m2solution.com}
       SEED_PASSWORD: ${SEED_PASSWORD:-changeme}
       COMPANY_NAME: ${COMPANY_NAME:-M2 Solution}
       COMPANY_EMAIL: ${COMPANY_EMAIL:-billing@m2solution.com}
+      COMPANY_ADDRESS: ${COMPANY_ADDRESS:-}
+      COMPANY_PHONE: ${COMPANY_PHONE:-}
     volumes:
       - ./backend/app:/app/app
-      - crm-data:/data
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
+    networks:
+      - default
+      - db-shared
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/api/health"]
       interval: 5s
       timeout: 3s
       retries: 12
-      start_period: 10s
+      start_period: 20s
+    restart: unless-stopped
 
   web:
     image: node:20-alpine
@@ -34,11 +41,16 @@ services:
       - ./frontend:/app
       - frontend_node_modules:/app/node_modules
     ports:
-      - "5173:5173"
+      - "127.0.0.1:5173:5173"
     depends_on:
       api:
         condition: service_healthy
+    restart: unless-stopped
 
 volumes:
-  crm-data:
   frontend_node_modules:
+
+networks:
+  db-shared:
+    name: crm-db
+    external: true

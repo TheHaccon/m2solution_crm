@@ -1,0 +1,10 @@
+[Unit]
+Description=Nightly M2 Solution CRM Postgres backup
+
+[Timer]
+OnCalendar=*-*-* 03:15:00
+Persistent=true
+RandomizedDelaySec=5m
+
+[Install]
+WantedBy=timers.target

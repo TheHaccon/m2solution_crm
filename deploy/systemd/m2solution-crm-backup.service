@@ -1,0 +1,14 @@
+[Unit]
+Description=M2 Solution CRM Postgres dump to data_backup
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+User=mathieu
+Group=docker
+WorkingDirectory=/srv/m2solution_crm
+ExecStart=/srv/m2solution_crm/scripts/backup-postgres.sh
+
+[Install]
+WantedBy=multi-user.target

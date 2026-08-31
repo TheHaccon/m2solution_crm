@@ -17,6 +17,8 @@ Internal CRM for billing and client meeting notes. Staff sign in. Clients do **n
 | Meeting notes | [features/meetings.md](features/meetings.md) |
 | Staff dashboard | [features/dashboard.md](features/dashboard.md) |
 | Docker | [features/docker.md](features/docker.md) |
+| Postgres | [features/postgres.md](features/postgres.md) |
+| Postgres replica / failover | [features/backups.md](features/backups.md) |
 
 ## Also read
 
