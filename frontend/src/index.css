@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Fraunces", ui-serif, Georgia, serif;
+  --color-ink: #0a1628;
+  --color-ink-2: #13233d;
+  --color-gold: #c4a35a;
+  --color-gold-2: #e8d5a3;
+  --color-cream: #f6f3ee;
+  --color-paper: #fffcf7;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+@media print {
+  nav,
+  .no-print {
+    display: none !important;
+  }
+
+  body,
+  #root {
+    background: white !important;
+  }
+
+  .invoice-sheet {
+    box-shadow: none !important;
+    margin: 0 !important;
+  }
+}

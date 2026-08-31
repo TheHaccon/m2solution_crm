@@ -1,0 +1,37 @@
+services:
+  api:
+    build:
+      context: ./backend
+    environment:
+      DATABASE_URL: sqlite:////data/crm.db
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-change-me}
+      PUBLIC_APP_URL: ${PUBLIC_APP_URL:-http://localhost:8080}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080,http://localhost}
+      SEED_EMAIL: ${SEED_EMAIL:-admin@m2solution.com}
+      SEED_PASSWORD: ${SEED_PASSWORD:-changeme}
+      COMPANY_NAME: ${COMPANY_NAME:-M2 Solution}
+      COMPANY_EMAIL: ${COMPANY_EMAIL:-billing@m2solution.com}
+      COMPANY_ADDRESS: ${COMPANY_ADDRESS:-}
+      COMPANY_PHONE: ${COMPANY_PHONE:-}
+    volumes:
+      - crm-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/api/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  crm-data:

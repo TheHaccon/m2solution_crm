@@ -1,0 +1,7 @@
+.venv
+__pycache__
+*.pyc
+*.db
+.env
+scripts_smoke.py
+.pytest_cache
