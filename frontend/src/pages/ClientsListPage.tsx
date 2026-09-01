@@ -23,7 +23,7 @@ export function ClientsListPage() {
           <h1 className="font-serif text-3xl">Clients</h1>
           <p className="mt-1 text-ink/55">Companies and people you bill and meet with.</p>
         </div>
-        <Link to="/clients/new" className="rounded-lg bg-ink px-4 py-2 text-sm font-medium text-cream hover:bg-ink-2">
+        <Link to="/clients/new" className="rounded-lg bg-navy px-4 py-2 text-sm font-medium text-cream hover:bg-navy-2">
           New client
         </Link>
       </div>
@@ -52,7 +52,7 @@ export function ClientsListPage() {
               </tr>
             ) : null}
             {clients.map((c) => (
-              <tr key={c.id} className="border-t border-ink/8 hover:bg-cream/60">
+              <tr key={c.id} className="border-t border-ink/8 hover:bg-ink/5">
                 <td className="px-4 py-3">
                   <Link to={`/clients/${c.id}`} className="font-medium hover:underline">
                     {c.name}

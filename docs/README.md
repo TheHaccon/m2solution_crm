@@ -15,6 +15,9 @@ Internal CRM for billing and client meeting notes. Staff sign in. Clients do **n
 | Invoices | [features/invoices.md](features/invoices.md) |
 | Public invoice links and view counts | [features/public-invoice-links.md](features/public-invoice-links.md) |
 | Meeting notes | [features/meetings.md](features/meetings.md) |
+| Markdown notes | [features/markdown.md](features/markdown.md) |
+| Teams | [features/teams.md](features/teams.md) |
+| Dark mode | [features/dark-mode.md](features/dark-mode.md) |
 | Staff dashboard | [features/dashboard.md](features/dashboard.md) |
 | Docker | [features/docker.md](features/docker.md) |
 | Postgres | [features/postgres.md](features/postgres.md) |

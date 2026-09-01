@@ -4,7 +4,7 @@ Date: 2026-08-31
 
 ## What it does
 
-Staff create QuickBooks-lite invoices (line items, totals, status). Payment is **not** collected in the app; staff mark paid by hand.
+Staff create QuickBooks-lite invoices (line items, totals, status). Payment is **not** collected in the app; staff mark paid by hand. Invoices are **personal**: a teammate who shares the client does not see your invoices in the CRM.
 
 ## Behavior
 
@@ -16,6 +16,8 @@ Staff create QuickBooks-lite invoices (line items, totals, status). Payment is *
 - **Rotate link** issues a new token; the old URL dies. Only for `sent` / `paid`.
 - Drafts can be edited or deleted. Sent invoices are not edited in v1 (status actions only).
 - Staff viewing an invoice in the CRM does **not** increment view count.
+- List/get/update/send/void only succeed for invoices the current user created (`created_by_id`). No `team_id` on invoices.
+- The billed client must belong to a team the user is a member of.
 
 ## API
 

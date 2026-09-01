@@ -1,9 +1,13 @@
-"""Smoke-test auth, clients, invoices, public views, meetings."""
+"""Smoke-test auth, teams, clients, invoices, public views, meetings."""
 from datetime import date, datetime, timezone
 
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 
+from app.core.database import SessionLocal
+from app.core.security import hash_password
 from app.main import app
+from app.models import TeamMember, User
 
 
 def main() -> None:
@@ -15,6 +19,12 @@ def main() -> None:
 
         me = client.get("/api/auth/me", headers=headers)
         assert me.status_code == 200, me.text
+
+        teams = client.get("/api/teams", headers=headers)
+        assert teams.status_code == 200, teams.text
+        assert teams.json(), "expected a seeded team"
+        team_id = teams.json()[0]["id"]
+        headers["X-Team-Id"] = str(team_id)
 
         created = client.post(
             "/api/clients",
@@ -78,6 +88,41 @@ def main() -> None:
 
         dash = client.get("/api/dashboard", headers=headers)
         assert dash.status_code == 200, dash.text
+
+        db = SessionLocal()
+        try:
+            other = db.scalar(select(User).where(User.email == "teammate@m2solution.com"))
+            if other is None:
+                other = User(
+                    email="teammate@m2solution.com",
+                    password_hash=hash_password("changeme"),
+                    full_name="Teammate",
+                )
+                db.add(other)
+                db.flush()
+            if db.scalar(select(TeamMember).where(TeamMember.team_id == team_id, TeamMember.user_id == other.id)) is None:
+                db.add(TeamMember(team_id=team_id, user_id=other.id))
+            db.commit()
+        finally:
+            db.close()
+
+        other_login = client.post(
+            "/api/auth/login", json={"email": "teammate@m2solution.com", "password": "changeme"}
+        )
+        assert other_login.status_code == 200, other_login.text
+        other_headers = {
+            "Authorization": f"Bearer {other_login.json()['access_token']}",
+            "X-Team-Id": str(team_id),
+        }
+        other_clients = client.get("/api/clients", headers=other_headers)
+        assert other_clients.status_code == 200, other_clients.text
+        assert any(c["id"] == client_id for c in other_clients.json())
+        other_invoices = client.get("/api/invoices", headers=other_headers)
+        assert other_invoices.status_code == 200, other_invoices.text
+        assert all(row["id"] != invoice_id for row in other_invoices.json())
+        hidden = client.get(f"/api/invoices/{invoice_id}", headers=other_headers)
+        assert hidden.status_code == 404, hidden.text
+
         print("ok", dash.json()["paid_count"], "paid,", "views" if dash.json()["recent_views"] else "no views")
 
 

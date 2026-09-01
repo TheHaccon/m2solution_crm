@@ -33,7 +33,7 @@ export function PublicInvoicePage() {
 
   if (error) {
     return (
-      <div className="grid min-h-svh place-items-center bg-cream px-4">
+      <div className="force-light grid min-h-svh place-items-center bg-cream px-4">
         <div className="text-center">
           <p className="font-serif text-2xl">Invoice unavailable</p>
           <p className="mt-2 text-ink/55">{error}</p>
@@ -43,14 +43,14 @@ export function PublicInvoicePage() {
   }
 
   if (!invoice) {
-    return <div className="grid min-h-svh place-items-center text-ink/50">Loading invoice…</div>
+    return <div className="force-light grid min-h-svh place-items-center bg-cream text-ink/50">Loading invoice…</div>
   }
 
   return (
-    <div className="min-h-svh bg-cream px-4 py-10">
+    <div className="force-light min-h-svh bg-cream px-4 py-10">
       <div className="no-print mx-auto mb-6 flex max-w-3xl items-center justify-between">
         <p className="font-serif text-lg text-ink">{invoice.company_name}</p>
-        <button type="button" onClick={() => window.print()} className="rounded-lg bg-ink px-3 py-1.5 text-sm text-cream">
+        <button type="button" onClick={() => window.print()} className="rounded-lg bg-navy px-3 py-1.5 text-sm text-cream">
           Print
         </button>
       </div>

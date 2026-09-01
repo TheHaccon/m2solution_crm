@@ -28,14 +28,14 @@ export function LoginPage() {
   }
 
   return (
-    <div className="grid min-h-svh place-items-center bg-ink px-4">
+    <div className="grid min-h-svh place-items-center bg-navy px-4">
       <form onSubmit={onSubmit} className="w-full max-w-sm rounded-2xl bg-paper p-8 shadow-xl">
         <p className="font-serif text-3xl text-ink">M2 Solution</p>
         <p className="mt-1 text-sm text-ink/55">Staff sign in</p>
         <label className="mt-6 block text-sm font-medium">
           Email
           <input
-            className="mt-1 w-full rounded-lg border border-ink/15 bg-white px-3 py-2 outline-none focus:border-gold"
+            className="mt-1 w-full rounded-lg border border-ink/15 bg-paper px-3 py-2 outline-none focus:border-gold"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -45,7 +45,7 @@ export function LoginPage() {
         <label className="mt-4 block text-sm font-medium">
           Password
           <input
-            className="mt-1 w-full rounded-lg border border-ink/15 bg-white px-3 py-2 outline-none focus:border-gold"
+            className="mt-1 w-full rounded-lg border border-ink/15 bg-paper px-3 py-2 outline-none focus:border-gold"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -56,7 +56,7 @@ export function LoginPage() {
         <button
           type="submit"
           disabled={submitting}
-          className="mt-6 w-full rounded-lg bg-ink py-2.5 text-sm font-medium text-cream hover:bg-ink-2 disabled:opacity-60"
+          className="mt-6 w-full rounded-lg bg-navy py-2.5 text-sm font-medium text-cream hover:bg-navy-2 disabled:opacity-60"
         >
           {submitting ? 'Signing in…' : 'Sign in'}
         </button>

@@ -98,10 +98,13 @@ export function MeetingFormPage() {
         <label className="block text-sm font-medium">
           Notes (markdown)
           <textarea className="mt-1 w-full rounded-lg border border-ink/15 px-3 py-2 font-mono text-sm" rows={10} value={body} onChange={(e) => setBody(e.target.value)} />
+          <span className="mt-1 block text-xs text-ink/45">
+            Discord-style markdown. Inline <code className="font-mono">`code`</code> and fenced blocks with ``` look like code on the meeting page.
+          </span>
         </label>
         {error ? <p className="text-sm text-rose-700">{error}</p> : null}
         <div className="flex gap-3">
-          <button type="submit" disabled={saving} className="rounded-lg bg-ink px-4 py-2 text-sm font-medium text-cream disabled:opacity-60">
+          <button type="submit" disabled={saving} className="rounded-lg bg-navy px-4 py-2 text-sm font-medium text-cream disabled:opacity-60">
             {saving ? 'Saving…' : 'Save'}
           </button>
           <Link to={editing ? `/meetings/${id}` : '/meetings'} className="rounded-lg px-4 py-2 text-sm text-ink/60">

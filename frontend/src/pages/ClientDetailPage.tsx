@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { api } from '../api'
+import { MarkdownBody } from '../markdown/MarkdownBody'
 import { StatusBadge } from '../components/StatusBadge'
 import { formatDate, formatDateTime, money } from '../lib/format'
 import type { Client, InvoiceList, Meeting } from '../types'
@@ -30,7 +31,7 @@ export function ClientDetailPage() {
   }, [id])
 
   async function onDelete() {
-    if (!id || !confirm('Delete this client and all related invoices and meetings?')) return
+    if (!id || !confirm('Delete this client and related meetings and your invoices? Teammate invoices block delete.')) return
     try {
       await api(`/api/clients/${id}`, { method: 'DELETE' })
       navigate('/clients')
@@ -56,7 +57,7 @@ export function ClientDetailPage() {
           <p className="mt-1 text-ink/60">{client.email ?? 'No email'} · {client.phone ?? 'No phone'}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Link to={`/invoices/new?clientId=${client.id}`} className="rounded-lg bg-ink px-3 py-2 text-sm font-medium text-cream">
+          <Link to={`/invoices/new?clientId=${client.id}`} className="rounded-lg bg-navy px-3 py-2 text-sm font-medium text-cream">
             New invoice
           </Link>
           <Link to={`/meetings/new?clientId=${client.id}`} className="rounded-lg border border-ink/15 bg-paper px-3 py-2 text-sm">
@@ -82,7 +83,9 @@ export function ClientDetailPage() {
           {client.notes ? (
             <div className="rounded-2xl bg-paper p-5 shadow-sm">
               <p className="text-xs font-semibold uppercase tracking-wider text-ink/45">Notes</p>
-              <p className="mt-2 whitespace-pre-wrap text-sm">{client.notes}</p>
+              <div className="mt-2 text-sm leading-relaxed">
+                <MarkdownBody text={client.notes} />
+              </div>
             </div>
           ) : null}
         </div>

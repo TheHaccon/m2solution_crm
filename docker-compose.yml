@@ -93,7 +93,7 @@ services:
     build:
       context: ./frontend
     ports:
-      - "${PROD_WEB_PUBLISH:-8080}:80"
+      - "${PROD_WEB_PUBLISH:-10.50.0.2:8081}:80"
     depends_on:
       api:
         condition: service_healthy

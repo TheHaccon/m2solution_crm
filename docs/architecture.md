@@ -22,22 +22,25 @@ docker-compose.yml
 docker-compose.dev.yml
 ```
 
-Frontend calls `/api/...`. In Vite (dev Compose or local) this is proxied to the API. In prod Docker, nginx on the `web` service proxies `/api/` to the `api` service. Public traffic hits `https://crm.m2solution.ca` on the VPS, which tunnels to this host’s port 8080.
+Frontend calls `/api/...`. In Vite (dev Compose or local) this is proxied to the API. In prod Docker, nginx on the `web` service proxies `/api/` to the `api` service. Public traffic hits `https://crm.m2solution.ca` on the VPS, which tunnels to this host’s `10.50.0.2:8081` (8080 is Wings).
 
 ## Data model
 
 - `users` — staff accounts
-- `clients` — companies/people you bill and meet
-- `invoices` — number, status (`draft` / `sent` / `paid` / `void`), totals, `public_token`, `view_count`, `last_viewed_at`
+- `teams` / `team_members` — staff groups; sidebar sets active team via `X-Team-Id`
+- `clients` — companies/people you bill and meet; `team_id`
+- `invoices` — number, status (`draft` / `sent` / `paid` / `void`), totals, `public_token`, `view_count`, `last_viewed_at`, `created_by_id` (owner; not team-scoped)
 - `invoice_line_items` — description, qty, rate, amount
 - `invoice_views` — each counted public open (cookie/viewer id, time, user-agent)
-- `meetings` — title, datetime, attendees, markdown body, linked to a client
+- `meetings` — title, datetime, attendees, markdown body, linked to a client (team via that client)
 
-Tables are created on API startup (`Base.metadata.create_all`). Alembic migration `001_initial` matches this schema.
+Tables are created on API startup (`Base.metadata.create_all`). Alembic migrations `001_initial` and `002_teams` match this schema. On an existing database, run `002_teams` — `create_all` does not add columns.
 
 ## Auth and access
 
 - Staff APIs require `Authorization: Bearer <jwt>`.
+- Client, meeting, and dashboard routes also require **`X-Team-Id`** and membership.
+- Invoice staff routes ignore the team header and return only rows where `created_by_id` is the current user.
 - `GET /api/public/invoices/{token}` is unauthenticated. Lookup is by unguessable `public_token`, never by sequential invoice number.
 - Draft and void invoices are not visible on the public URL (`sent` and `paid` only).
 
@@ -54,7 +57,7 @@ Tables are created on API startup (`Base.metadata.create_all`). Alembic migratio
 | `PUBLIC_APP_URL` | Prod origin for share links (`https://crm.m2solution.ca/i/{token}`) |
 | `CORS_ORIGINS` | Prod browser origins |
 | `DEV_PUBLIC_APP_URL` / `DEV_CORS_ORIGINS` | Dev stack only (`http://localhost:5173`) |
-| `PROD_WEB_PUBLISH` | Optional prod `web` publish address (default `8080`) |
+| `PROD_WEB_PUBLISH` | Prod `web` publish address (default `10.50.0.2:8081`; 8080 is Wings) |
 | `SEED_EMAIL` / `SEED_PASSWORD` | First staff user created if missing (per database) |
 | `COMPANY_*` | Name, email, address, phone on the public invoice |
 

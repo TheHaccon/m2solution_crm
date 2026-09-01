@@ -10,13 +10,13 @@ Run the CRM as two Compose projects on the same host: **prod** (public invoices 
 
 ### Prod — `docker compose up --build -d` (project `crm`)
 
-- `web` on **8080**, `api` not published; nginx proxies `/api/` to `api:8000`.
+- `web` on **`10.50.0.2:8081`** (WireGuard). Host 8080 is Pterodactyl Wings. `api` is not published; nginx proxies `/api/` to `api:8000`.
 - `db` Postgres 16 on `127.0.0.1:5432`. `db-replica` on `127.0.0.1:5433`.
 - `db-init` creates database `${DEV_POSTGRES_DB}` (default `crm_dev`) if missing. Prod API uses `${POSTGRES_DB}` (default `crm`).
 - Cluster files: `${PGDATA_PRIMARY}` (default `/mnt/data_main/m2solution_crm/pgdata`) and `${PGDATA_REPLICA}` (default `/mnt/data_backup/m2solution_crm/pgdata`).
 - `PUBLIC_APP_URL` / `CORS_ORIGINS` default to `https://crm.m2solution.ca`.
-- `PROD_WEB_PUBLISH` (optional) can restrict 8080, e.g. `10.50.0.2:8080` for WireGuard-only.
-- VPS nginx terminates TLS for `crm.m2solution.ca` and proxies to `10.50.0.2:8080`.
+- `PROD_WEB_PUBLISH` default `10.50.0.2:8081`.
+- VPS nginx terminates TLS for `crm.m2solution.ca` and proxies to `10.50.0.2:8081`.
 - Named network `crm-db` so the dev API can reach hostname `db`.
 
 ### Dev — `docker compose -f docker-compose.dev.yml up --build -d` (project `crm-dev`)

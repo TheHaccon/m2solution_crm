@@ -1,0 +1,127 @@
+"""teams, client.team_id, invoice.created_by_id
+
+Revision ID: 002_teams
+Revises: 001_initial
+Create Date: 2026-09-01
+"""
+
+from typing import Sequence, Union
+
+import sqlalchemy as sa
+from alembic import op
+
+revision: str = "002_teams"
+down_revision: Union[str, Sequence[str], None] = "001_initial"
+branch_labels: Union[str, Sequence[str], None] = None
+depends_on: Union[str, Sequence[str], None] = None
+
+
+def _has_table(insp: sa.Inspector, name: str) -> bool:
+    return name in insp.get_table_names()
+
+
+def _has_column(insp: sa.Inspector, table: str, col: str) -> bool:
+    return col in {c["name"] for c in insp.get_columns(table)}
+
+
+def _has_index(insp: sa.Inspector, table: str, name: str) -> bool:
+    return name in {i["name"] for i in insp.get_indexes(table)}
+
+
+def _has_fk(insp: sa.Inspector, table: str, name: str) -> bool:
+    return name in {fk["name"] for fk in insp.get_foreign_keys(table)}
+
+
+def upgrade() -> None:
+    conn = op.get_bind()
+    insp = sa.inspect(conn)
+
+    if not _has_table(insp, "teams"):
+        op.create_table(
+            "teams",
+            sa.Column("id", sa.Integer(), primary_key=True),
+            sa.Column("name", sa.String(255), nullable=False),
+            sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
+        )
+        insp = sa.inspect(conn)
+
+    if not _has_table(insp, "team_members"):
+        op.create_table(
+            "team_members",
+            sa.Column("id", sa.Integer(), primary_key=True),
+            sa.Column("team_id", sa.Integer(), sa.ForeignKey("teams.id", ondelete="CASCADE"), nullable=False),
+            sa.Column("user_id", sa.Integer(), sa.ForeignKey("users.id", ondelete="CASCADE"), nullable=False),
+            sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
+            sa.UniqueConstraint("team_id", "user_id", name="uq_team_members_team_user"),
+        )
+        insp = sa.inspect(conn)
+
+    if _has_table(insp, "team_members") and not _has_index(insp, "team_members", "ix_team_members_team_id"):
+        op.create_index("ix_team_members_team_id", "team_members", ["team_id"])
+    if _has_table(insp, "team_members") and not _has_index(insp, "team_members", "ix_team_members_user_id"):
+        op.create_index("ix_team_members_user_id", "team_members", ["user_id"])
+
+    team_id = conn.execute(sa.text("SELECT id FROM teams ORDER BY id LIMIT 1")).scalar()
+    if team_id is None:
+        team_id = conn.execute(
+            sa.text("INSERT INTO teams (name, created_at) VALUES ('M2 Solution', NOW()) RETURNING id")
+        ).scalar()
+    conn.execute(
+        sa.text(
+            "INSERT INTO team_members (team_id, user_id, created_at) "
+            "SELECT :team_id, u.id, NOW() FROM users u "
+            "WHERE NOT EXISTS ("
+            "  SELECT 1 FROM team_members m WHERE m.team_id = :team_id AND m.user_id = u.id"
+            ")"
+        ),
+        {"team_id": team_id},
+    )
+
+    insp = sa.inspect(conn)
+    if not _has_column(insp, "clients", "team_id"):
+        op.add_column("clients", sa.Column("team_id", sa.Integer(), nullable=True))
+        conn.execute(sa.text("UPDATE clients SET team_id = :team_id"), {"team_id": team_id})
+        op.alter_column("clients", "team_id", existing_type=sa.Integer(), nullable=False)
+        insp = sa.inspect(conn)
+    if not _has_fk(insp, "clients", "fk_clients_team_id"):
+        op.create_foreign_key(
+            "fk_clients_team_id",
+            "clients",
+            "teams",
+            ["team_id"],
+            ["id"],
+            ondelete="RESTRICT",
+        )
+    if not _has_index(insp, "clients", "ix_clients_team_id"):
+        op.create_index("ix_clients_team_id", "clients", ["team_id"])
+
+    insp = sa.inspect(conn)
+    if not _has_column(insp, "invoices", "created_by_id"):
+        op.add_column("invoices", sa.Column("created_by_id", sa.Integer(), nullable=True))
+        conn.execute(sa.text("UPDATE invoices SET created_by_id = (SELECT id FROM users ORDER BY id LIMIT 1)"))
+        op.alter_column("invoices", "created_by_id", existing_type=sa.Integer(), nullable=False)
+        insp = sa.inspect(conn)
+    if not _has_fk(insp, "invoices", "fk_invoices_created_by_id"):
+        op.create_foreign_key(
+            "fk_invoices_created_by_id",
+            "invoices",
+            "users",
+            ["created_by_id"],
+            ["id"],
+            ondelete="RESTRICT",
+        )
+    if not _has_index(insp, "invoices", "ix_invoices_created_by_id"):
+        op.create_index("ix_invoices_created_by_id", "invoices", ["created_by_id"])
+
+
+def downgrade() -> None:
+    op.drop_index("ix_invoices_created_by_id", table_name="invoices")
+    op.drop_constraint("fk_invoices_created_by_id", "invoices", type_="foreignkey")
+    op.drop_column("invoices", "created_by_id")
+    op.drop_index("ix_clients_team_id", table_name="clients")
+    op.drop_constraint("fk_clients_team_id", "clients", type_="foreignkey")
+    op.drop_column("clients", "team_id")
+    op.drop_index("ix_team_members_user_id", table_name="team_members")
+    op.drop_index("ix_team_members_team_id", table_name="team_members")
+    op.drop_table("team_members")
+    op.drop_table("teams")

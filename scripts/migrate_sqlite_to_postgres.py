@@ -18,13 +18,20 @@ from sqlalchemy import create_engine, func, inspect, select, text
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.database import Base
-from app.models import Client, Invoice, InvoiceLineItem, InvoiceView, Meeting, User
+from app.models import Client, Invoice, InvoiceLineItem, InvoiceView, Meeting, Team, TeamMember, User
+from app.models.user import utcnow
 
-TABLES: Sequence[type] = (User, Client, Invoice, InvoiceLineItem, InvoiceView, Meeting)
+TABLES: Sequence[type] = (User, Team, TeamMember, Client, Invoice, InvoiceLineItem, InvoiceView, Meeting)
 
 
-def _clone(model: type, obj: object) -> object:
-    data = {col.name: getattr(obj, col.name) for col in model.__table__.columns}
+def _clone(model: type, obj: object, extra: dict | None = None) -> object:
+    extra = extra or {}
+    data = {}
+    for col in model.__table__.columns:
+        if col.name in extra:
+            data[col.name] = extra[col.name]
+        elif hasattr(obj, col.name):
+            data[col.name] = getattr(obj, col.name)
     return model(**data)
 
 
@@ -65,6 +72,7 @@ def main() -> int:
     Base.metadata.create_all(bind=dest_engine)
     SourceSession = sessionmaker(bind=source_engine, autoflush=False)
     DestSession = sessionmaker(bind=dest_engine, autoflush=False)
+    source_has_teams = inspect(source_engine).has_table("teams")
 
     with SourceSession() as source, DestSession() as dest:
         if _count(dest, User) > 0:
@@ -72,7 +80,50 @@ def main() -> int:
             return 0
 
         copied: dict[str, int] = {}
-        for model in TABLES:
+
+        for row in source.scalars(select(User)):
+            dest.add(_clone(User, row))
+        copied["users"] = _count(source, User)
+        dest.flush()
+
+        default_team_id: int | None = None
+        if source_has_teams:
+            for row in source.scalars(select(Team)):
+                dest.add(_clone(Team, row))
+            copied["teams"] = _count(source, Team)
+            dest.flush()
+            for row in source.scalars(select(TeamMember)):
+                dest.add(_clone(TeamMember, row))
+            copied["team_members"] = _count(source, TeamMember)
+        else:
+            team = Team(name="M2 Solution")
+            dest.add(team)
+            dest.flush()
+            default_team_id = team.id
+            for user in dest.scalars(select(User)):
+                dest.add(TeamMember(team_id=team.id, user_id=user.id, created_at=utcnow()))
+            copied["teams"] = 1
+            copied["team_members"] = _count(dest, User)
+
+        dest.flush()
+        first_user_id = dest.scalar(select(User.id).order_by(User.id))
+
+        for row in source.scalars(select(Client)):
+            extra = {}
+            if default_team_id is not None:
+                extra["team_id"] = default_team_id
+            dest.add(_clone(Client, row, extra))
+        copied["clients"] = _count(source, Client)
+        dest.flush()
+
+        for row in source.scalars(select(Invoice)):
+            extra = {}
+            if not hasattr(row, "created_by_id") or getattr(row, "created_by_id", None) is None:
+                extra["created_by_id"] = first_user_id
+            dest.add(_clone(Invoice, row, extra))
+        copied["invoices"] = _count(source, Invoice)
+
+        for model in (InvoiceLineItem, InvoiceView, Meeting):
             rows = list(source.scalars(select(model)))
             for row in rows:
                 dest.add(_clone(model, row))

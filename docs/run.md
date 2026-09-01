@@ -4,10 +4,12 @@ Two Compose projects can run at the same time. They share **one Postgres instanc
 
 | Stack | Compose file | Project | Who uses it |
 | ----- | ------------ | ------- | ----------- |
-| **Prod** | `docker-compose.yml` | `crm` | Public site `https://crm.m2solution.ca` (VPS nginx → WireGuard `10.50.0.2:8080`) |
+| **Prod** | `docker-compose.yml` | `crm` | Public site `https://crm.m2solution.ca` (VPS nginx → WireGuard `10.50.0.2:8081`) |
 | **Dev** | `docker-compose.dev.yml` | `crm-dev` | Staff only, via SSH local forward to Vite |
 
-Seed staff user: `admin@m2solution.com` / `changeme` (override with `SEED_EMAIL` / `SEED_PASSWORD`). Each stack seeds its **own** database (`crm` vs `crm_dev`).
+Seed staff user: `admin@m2solution.com` / `changeme` (override with `SEED_EMAIL` / `SEED_PASSWORD`). Each stack seeds its **own** database (`crm` vs `crm_dev`) and a default team `M2 Solution`.
+
+On an existing database, apply Alembic `002_teams` (adds `teams`, `team_members`, `clients.team_id`, `invoices.created_by_id`). `create_all` will not add those columns.
 
 Copy [`.env.example`](../.env.example) to `.env` and set `SECRET_KEY`, `POSTGRES_PASSWORD`, and `REPLICATION_PASSWORD`. Compose interpolates that file automatically. Prod share links use `PUBLIC_APP_URL`; dev uses `DEV_PUBLIC_APP_URL` so the public hostname is not baked into the hot-reload stack.
 
@@ -19,21 +21,21 @@ Start **prod `db`** (and `db-init`) before the dev stack. Dev has no Postgres of
 docker compose up --build -d
 ```
 
-- UI / API (same origin): host port **8080** (container nginx → FastAPI `/api/`)
+- UI / API (same origin): **`10.50.0.2:8081`** (WireGuard). Host **8080** is Pterodactyl Wings, not the CRM.
 - Postgres primary: `127.0.0.1:5432` — `psql -h 127.0.0.1 -U crm -d crm`
 - Dev database on the same instance: `psql -h 127.0.0.1 -U crm -d crm_dev` (created by `db-init`)
 - Standby: `127.0.0.1:5433` when `db-replica` is running (copies the whole instance, including `crm_dev`)
 
 Cluster files: `/mnt/data_main/m2solution_crm/pgdata`. Streaming replica and failover: [features/backups.md](features/backups.md).
 
-If you previously started Compose **without** `name: crm`, stop the old project first so 5432/8080 are free:
+If an older Compose project named `m2solution_crm` is still running, it holds 5432/5433:
 
 ```bash
 docker compose -p m2solution_crm down
 docker compose up --build -d
 ```
 
-Optional: set `PROD_WEB_PUBLISH=10.50.0.2:8080` in `.env` so 8080 is only on the WireGuard interface.
+Override the public bind with `PROD_WEB_PUBLISH` in `.env` (default `10.50.0.2:8081`). VPS nginx must `proxy_pass` that address.
 
 ## Dev (SSH port forward)
 

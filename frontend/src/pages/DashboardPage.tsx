@@ -28,7 +28,7 @@ export function DashboardPage() {
   return (
     <div>
       <h1 className="font-serif text-3xl">Dashboard</h1>
-      <p className="mt-1 text-ink/55">Billing, views, and recent client meetings.</p>
+      <p className="mt-1 text-ink/55">Your invoices and views; meetings for the active team.</p>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
         {cards.map((card) => (
