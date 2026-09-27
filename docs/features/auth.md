@@ -19,6 +19,7 @@ Staff sign in with email and password, or with Google when the Google OAuth clie
 - Signed-in `admin@m2solution.com` can reset any staff password (including their own) from account settings. Privilege is that literal email, not `SEED_EMAIL`. Unknown target email returns 404. New password must differ from the current hash (400). Existing JWTs stay valid until expiry.
 - **Google sign-in** uses the authorization-code flow (backend holds `GOOGLE_CLIENT_SECRET`). The API trusts only a Google email with `email_verified` true, looks up `users.email` (case-insensitive, same as password login), and issues a JWT for that existing row. Unknown or unverified emails fail generically; the API never creates a user or team membership. Password login stays available as a fallback.
 - If `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, or `GOOGLE_REDIRECT_URI` is empty, `GET /api/auth/google/start` returns 503. The operator must create an OAuth client in Google Cloud; the app does not invent credentials.
+- Production `GOOGLE_REDIRECT_URI` is `https://crm.m2solution.ca/auth/google/callback`. Nginx forwards that exact path to the API route `/api/auth/google/callback`. The API then sends the browser to `/login?google_token=…`. A redirect that lands on the SPA instead never exchanges the code, so the staff member stays on the login page.
 
 ## API
 
@@ -29,7 +30,7 @@ Staff sign in with email and password, or with Google when the Google OAuth clie
 | POST | `/api/auth/password` | staff | JSON `{ current_password, new_password }` — 204 |
 | POST | `/api/auth/admin/password-reset` | staff (`admin@m2solution.com` only) | JSON `{ email, new_password }` — 204; others 403; unknown email 404 |
 | GET | `/api/auth/google/start` | none | Redirects to Google authorize URL (CSRF `state`); 503 if Google env unset |
-| GET | `/api/auth/google/callback` | none | Google redirect; validates `state`, exchanges `code`, matches staff email → redirect to `{PUBLIC_APP_URL}/login?google_token=…` or `?google_error=1` |
+| GET | `/api/auth/google/callback` | none | Google redirect; validates `state`, exchanges `code`, matches staff email → redirect to `{PUBLIC_APP_URL}/login?google_token=…` or `?google_error=1`. Prod nginx also exposes this as `GET /auth/google/callback`. |
 
 ## UI
 
