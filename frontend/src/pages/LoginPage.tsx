@@ -31,6 +31,11 @@ export function LoginPage() {
       return
     }
 
+    if (!googleToken) {
+      setGooglePending(false)
+      return
+    }
+
     setGooglePending(true)
     setError(null)
     loginWithToken(googleToken)
