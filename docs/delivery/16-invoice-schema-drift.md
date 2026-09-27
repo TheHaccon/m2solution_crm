@@ -7,7 +7,7 @@ pr-open
 - Issue(s): #16 — https://github.com/TheHaccon/m2solution_crm/issues/16
 - Input doc: docs/input/2026-09-27-invoice-schema-drift.md
 - Branch: `fix/invoice-schema-drift`
-- PR: **pending** (filled after open)
+- PR: https://github.com/TheHaccon/m2solution_crm/pull/18
 - Tip commit: `b994afd6271249262c082695b5a17be20e6e684c`
 
 ## Summary
