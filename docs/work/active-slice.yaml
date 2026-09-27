@@ -3,7 +3,7 @@ repo: TheHaccon/m2solution_crm
 feature_slug: google-sign-in
 input_doc: docs/input/2026-09-27-google-sign-in.md
 delivery_mode: batch
-phase: implementing
+phase: pr_open
 gates:
   gate_1:
     approved_at: "2026-09-27T15:05:00-04:00"
@@ -22,7 +22,12 @@ issues:
     url: https://github.com/TheHaccon/m2solution_crm/issues/5
     title: "[ops] Document Google OAuth env and operator setup"
 branch: feature/google-sign-in
+delivery_report: docs/delivery/feature-google-sign-in.md
+pr:
+  number: null
+  url: null
+  state: null
 labels:
   managed: agent-managed
-updated_at: "2026-09-27T19:12:00Z"
-updated_by: coder
+updated_at: "2026-09-27T19:25:00Z"
+updated_by: documenter
