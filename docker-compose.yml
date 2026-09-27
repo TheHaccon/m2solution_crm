@@ -78,6 +78,9 @@ services:
       COMPANY_EMAIL: ${COMPANY_EMAIL:-billing@m2solution.com}
       COMPANY_ADDRESS: ${COMPANY_ADDRESS:-}
       COMPANY_PHONE: ${COMPANY_PHONE:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-}
     depends_on:
       db:
         condition: service_healthy

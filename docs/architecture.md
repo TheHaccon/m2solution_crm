@@ -6,7 +6,7 @@
 | ----- | ------ |
 | Frontend | Vite, React, TypeScript (`.tsx`), Tailwind, React Router |
 | Backend | FastAPI, SQLAlchemy 2, Alembic, PostgreSQL 16 (`DATABASE_URL`) |
-| Auth | JWT for **staff only** (bcrypt passwords) |
+| Auth | JWT for **staff only** (bcrypt passwords; optional Google OAuth email match) |
 | Run | Two Compose projects: prod (`crm`: `db` + `db-replica` + nginx + API) and dev (`crm-dev`: Vite + API reload). One Postgres instance, databases `crm` and `crm_dev`. Or local Vite + uvicorn |
 
 ## Repo layout
@@ -43,6 +43,7 @@ Tables are created on API startup (`Base.metadata.create_all`). Alembic migratio
 - Invoice staff routes ignore the team header and return only rows where `created_by_id` is the current user.
 - `GET /api/public/invoices/{token}` is unauthenticated. Lookup is by unguessable `public_token`, never by sequential invoice number.
 - Draft and void invoices are not visible on the public URL (`sent` and `paid` only).
+- Optional Google staff login: browser hits `GET /api/auth/google/start` (same-origin; Vite/nginx proxy `/api`), backend redirects to Google, callback exchanges the code with the client secret, then redirects to `{PUBLIC_APP_URL}/login?google_token=…` only when the verified Google email already matches a `users` row.
 
 ## Environment (backend)
 
@@ -53,12 +54,15 @@ Tables are created on API startup (`Base.metadata.create_all`). Alembic migratio
 | `DEV_POSTGRES_DB` | Second database on the same instance for the dev stack (`crm_dev`) |
 | `REPLICATION_PASSWORD` | Streaming replica user `replicator` |
 | `PGDATA_PRIMARY` / `PGDATA_REPLICA` | Host paths for the Postgres cluster (all databases) |
-| `SECRET_KEY` | JWT signing |
-| `PUBLIC_APP_URL` | Prod origin for share links (`https://crm.m2solution.ca/i/{token}`) |
+| `SECRET_KEY` | JWT signing (also signs short-lived Google OAuth `state`) |
+| `PUBLIC_APP_URL` | Prod origin for share links (`https://crm.m2solution.ca/i/{token}`) and Google post-login redirect |
 | `CORS_ORIGINS` | Prod browser origins |
 | `DEV_PUBLIC_APP_URL` / `DEV_CORS_ORIGINS` | Dev stack only (`http://localhost:5173`) |
 | `PROD_WEB_PUBLISH` | Prod `web` publish address (default `10.50.0.2:8081`; 8080 is Wings) |
 | `SEED_EMAIL` / `SEED_PASSWORD` | First staff user created if missing (per database) |
 | `COMPANY_*` | Name, email, address, phone on the public invoice |
+| `GOOGLE_CLIENT_ID` | Google OAuth client id (empty = Google sign-in disabled) |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret (backend only; never ship to the frontend) |
+| `GOOGLE_REDIRECT_URI` | Must match Google Cloud authorized redirect (prod: `https://crm.m2solution.ca/api/auth/google/callback`; dev via Vite: `http://localhost:5173/api/auth/google/callback`) |
 
 Defaults live in `backend/app/core/config.py`, `.env.example`, and `backend/.env.example`. Prod cluster files: `/mnt/data_main/m2solution_crm/pgdata` (primary) and `/mnt/data_backup/m2solution_crm/pgdata` (standby). Failover: [features/backups.md](features/backups.md). How to run both stacks: [run.md](run.md).

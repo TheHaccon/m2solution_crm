@@ -1,16 +1,30 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from urllib.parse import urlencode
+
+import httpx
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.database import get_db
 from app.core.deps import get_current_user
-from app.core.security import create_access_token, hash_password, verify_password
+from app.core.security import (
+    create_access_token,
+    create_google_oauth_state,
+    hash_password,
+    verify_google_oauth_state,
+    verify_password,
+)
 from app.models.user import User
 from app.schemas.auth import AdminPasswordResetRequest, LoginRequest, TokenResponse, UserOut
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 ADMIN_EMAIL = "admin@m2solution.com"
+GOOGLE_AUTHORIZE_URL = "https://accounts.google.com/o/oauth2/v2/auth"
+GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
+GOOGLE_USERINFO_URL = "https://openidconnect.googleapis.com/userinfo"
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -42,3 +56,86 @@ def admin_password_reset(
     target.password_hash = hash_password(body.new_password)
     db.add(target)
     db.commit()
+
+
+def _google_login_redirect(*, token: str | None = None, error: bool = False) -> RedirectResponse:
+    base = settings.public_app_url.rstrip("/")
+    if token:
+        return RedirectResponse(url=f"{base}/login?google_token={token}", status_code=status.HTTP_302_FOUND)
+    if error:
+        return RedirectResponse(url=f"{base}/login?google_error=1", status_code=status.HTTP_302_FOUND)
+    return RedirectResponse(url=f"{base}/login", status_code=status.HTTP_302_FOUND)
+
+
+@router.get("/google/start")
+def google_start() -> RedirectResponse:
+    if not settings.google_oauth_configured:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Google sign-in is not configured",
+        )
+    state = create_google_oauth_state()
+    params = urlencode(
+        {
+            "client_id": settings.google_client_id,
+            "redirect_uri": settings.google_redirect_uri,
+            "response_type": "code",
+            "scope": "openid email profile",
+            "access_type": "online",
+            "include_granted_scopes": "true",
+            "state": state,
+            "prompt": "select_account",
+        }
+    )
+    return RedirectResponse(url=f"{GOOGLE_AUTHORIZE_URL}?{params}", status_code=status.HTTP_302_FOUND)
+
+
+@router.get("/google/callback")
+def google_callback(
+    code: str | None = Query(default=None),
+    state: str | None = Query(default=None),
+    db: Session = Depends(get_db),
+) -> RedirectResponse:
+    if not settings.google_oauth_configured:
+        return _google_login_redirect(error=True)
+    if not code or not state or not verify_google_oauth_state(state):
+        return _google_login_redirect(error=True)
+
+    try:
+        with httpx.Client(timeout=15.0) as client:
+            token_res = client.post(
+                GOOGLE_TOKEN_URL,
+                data={
+                    "code": code,
+                    "client_id": settings.google_client_id,
+                    "client_secret": settings.google_client_secret,
+                    "redirect_uri": settings.google_redirect_uri,
+                    "grant_type": "authorization_code",
+                },
+            )
+            if token_res.status_code != 200:
+                return _google_login_redirect(error=True)
+            token_payload = token_res.json()
+            access_token = token_payload.get("access_token")
+            if not access_token:
+                return _google_login_redirect(error=True)
+            userinfo_res = client.get(
+                GOOGLE_USERINFO_URL,
+                headers={"Authorization": f"Bearer {access_token}"},
+            )
+            if userinfo_res.status_code != 200:
+                return _google_login_redirect(error=True)
+            userinfo = userinfo_res.json()
+    except httpx.HTTPError:
+        return _google_login_redirect(error=True)
+
+    email = userinfo.get("email")
+    email_verified = userinfo.get("email_verified")
+    if not email or email_verified is not True:
+        return _google_login_redirect(error=True)
+
+    user = db.scalar(select(User).where(User.email == str(email).lower()))
+    if user is None:
+        return _google_login_redirect(error=True)
+
+    return _google_login_redirect(token=create_access_token(str(user.id)))
