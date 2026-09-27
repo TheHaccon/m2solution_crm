@@ -7,7 +7,7 @@ pr-open
 - Issue(s): #3 — https://github.com/TheHaccon/m2solution_crm/issues/3 · #4 — https://github.com/TheHaccon/m2solution_crm/issues/4 · #5 — https://github.com/TheHaccon/m2solution_crm/issues/5
 - Input doc: docs/input/2026-09-27-google-sign-in.md
 - Branch: `feature/google-sign-in`
-- PR: **pending**
+- PR: https://github.com/TheHaccon/m2solution_crm/pull/6
 
 ## Summary
 Staff can sign in with email/password or with Google. Google uses the authorization-code flow on the backend (client secret stays server-side). A verified Google email that already matches an existing `users` row gets the same staff JWT as password login; unknown or unverified emails fail without creating accounts. Password login remains the fallback. Operators must set `GOOGLE_*` env vars from a Google Cloud OAuth client before the button works.
