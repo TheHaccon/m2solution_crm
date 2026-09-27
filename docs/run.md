@@ -35,6 +35,16 @@ docker compose up --build -d
 - UI / API: **`10.50.0.2:8081`** (WireGuard). Host **8080** is Pterodactyl Wings.
 - File blobs: `/mnt/data_main/m2solution_crm/files` (not replicated)
 
+### Schema migrations (Alembic)
+
+After pulling a revision that adds columns (or a repair revision such as `005_repair_invoice_client_columns`), apply without recreating the Postgres volume:
+
+```bash
+docker compose exec api alembic upgrade head
+```
+
+`create_all` on API startup does not add missing columns to existing tables. Do not stamp backward to re-run older revisions when later tables already exist.
+
 ## Dev (SSH port forward)
 
 ```bash
