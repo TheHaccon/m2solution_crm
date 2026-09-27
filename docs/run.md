@@ -13,6 +13,17 @@ On an existing database, apply Alembic `002_teams` (adds `teams`, `team_members`
 
 Copy [`.env.example`](../.env.example) to `.env` and set `SECRET_KEY`, `POSTGRES_PASSWORD`, and `REPLICATION_PASSWORD`. Compose interpolates that file automatically. Prod share links use `PUBLIC_APP_URL`; dev uses `DEV_PUBLIC_APP_URL` so the public hostname is not baked into the hot-reload stack.
 
+### Google staff sign-in (optional)
+
+Create an OAuth 2.0 **Web application** client in [Google Cloud Console](https://console.cloud.google.com/apis/credentials). Set authorized redirect URIs to match `GOOGLE_REDIRECT_URI`:
+
+| Environment | Example redirect URI |
+| ----------- | -------------------- |
+| Prod | `https://crm.m2solution.ca/api/auth/google/callback` |
+| Dev (Vite proxies `/api`) | `http://localhost:5173/api/auth/google/callback` |
+
+Put `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_REDIRECT_URI` in root `.env` (Compose) and/or `backend/.env` (local uvicorn). Leave them empty to keep password-only login; `/api/auth/google/start` then returns 503. Details: [features/auth.md](features/auth.md).
+
 Start **prod `db`** (and `db-init`) before the dev stack. Dev has no Postgres of its own; it joins Docker network `crm-db` and talks to hostname `db`.
 
 ## Prod

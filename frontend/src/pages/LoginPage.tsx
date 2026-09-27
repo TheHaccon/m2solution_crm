@@ -1,16 +1,46 @@
-import { type FormEvent, useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { type FormEvent, useEffect, useRef, useState } from 'react'
+import { Navigate, useSearchParams } from 'react-router-dom'
 
 import { useAuth } from '../auth/AuthContext'
 
 export function LoginPage() {
-  const { user, loading, login } = useAuth()
-    const [email, setEmail] = useState('admin@m2solution.com')
+  const { user, loading, login, loginWithToken } = useAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const googleHandled = useRef(false)
+  const [email, setEmail] = useState('admin@m2solution.com')
   const [password, setPassword] = useState('changeme')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [googlePending, setGooglePending] = useState(() => Boolean(searchParams.get('google_token')))
 
-  if (!loading && user) {
+  useEffect(() => {
+    if (googleHandled.current) return
+    const googleToken = searchParams.get('google_token')
+    const googleError = searchParams.get('google_error')
+    if (!googleToken && !googleError) return
+
+    googleHandled.current = true
+    const next = new URLSearchParams(searchParams)
+    next.delete('google_token')
+    next.delete('google_error')
+    setSearchParams(next, { replace: true })
+
+    if (googleError) {
+      setGooglePending(false)
+      setError('Google sign-in failed')
+      return
+    }
+
+    setGooglePending(true)
+    setError(null)
+    loginWithToken(googleToken)
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : 'Google sign-in failed')
+      })
+      .finally(() => setGooglePending(false))
+  }, [loginWithToken, searchParams, setSearchParams])
+
+  if (!loading && !googlePending && user) {
     return <Navigate to="/dashboard" replace />
   }
 
@@ -40,6 +70,7 @@ export function LoginPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            disabled={googlePending}
           />
         </label>
         <label className="mt-4 block text-sm font-medium">
@@ -50,16 +81,31 @@ export function LoginPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            disabled={googlePending}
           />
         </label>
         {error ? <p className="mt-3 text-sm text-rose-700">{error}</p> : null}
         <button
           type="submit"
-          disabled={submitting}
+          disabled={submitting || googlePending}
           className="mt-6 w-full rounded-lg bg-navy py-2.5 text-sm font-medium text-cream hover:bg-navy-2 disabled:opacity-60"
         >
           {submitting ? 'Signing in…' : 'Sign in'}
         </button>
+        <div className="my-4 flex items-center gap-3 text-xs text-ink/40">
+          <span className="h-px flex-1 bg-ink/10" />
+          or
+          <span className="h-px flex-1 bg-ink/10" />
+        </div>
+        <a
+          href="/api/auth/google/start"
+          aria-disabled={googlePending || submitting}
+          className={`block w-full rounded-lg border border-ink/15 bg-paper py-2.5 text-center text-sm font-medium text-ink hover:border-gold ${
+            googlePending || submitting ? 'pointer-events-none opacity-60' : ''
+          }`}
+        >
+          {googlePending ? 'Signing in with Google…' : 'Sign in with Google'}
+        </a>
       </form>
     </div>
   )

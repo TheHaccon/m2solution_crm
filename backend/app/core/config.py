@@ -16,10 +16,21 @@ class Settings(BaseSettings):
     company_email: str = "billing@m2solution.com"
     company_address: str = ""
     company_phone: str = ""
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    google_redirect_uri: str = ""
 
     @property
     def cors_origin_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+
+    @property
+    def google_oauth_configured(self) -> bool:
+        return bool(
+            self.google_client_id.strip()
+            and self.google_client_secret.strip()
+            and self.google_redirect_uri.strip()
+        )
 
 
 settings = Settings()
