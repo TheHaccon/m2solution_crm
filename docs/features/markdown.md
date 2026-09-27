@@ -4,7 +4,7 @@ Date: 2026-09-01
 
 ## What it does
 
-Staff meeting bodies and client internal notes render as Discord-style markdown. Code written with backticks displays as code (no visible `` ` ``). The same component can be reused for later stored config text.
+Staff meeting bodies and client internal notes render as markdown. Code written with backticks displays as code (no visible `` ` ``). The same component can be reused for later stored config text.
 
 ## Behavior
 
@@ -36,4 +36,4 @@ None. Existing `meetings.body` and `clients.notes` fields.
 
 ## Follow-ups / out of scope
 
-No live preview in the form. No syntax highlighting. No Discord spoilers `|| ||`.
+No live preview in the form. No syntax highlighting.

@@ -10,6 +10,7 @@ from app.models.client import Client
 from app.models.invoice import Invoice, InvoiceStatus, InvoiceView
 from app.models.user import User
 from app.schemas.invoice import InvoiceCreate, InvoiceListOut, InvoiceOut, InvoiceUpdate, InvoiceViewOut
+from app.services.invoice_files import delete_invoice_pdf, save_invoice_pdf
 from app.services.invoices import (
     apply_line_items,
     ensure_draft,
@@ -40,6 +41,10 @@ def _client_for_invoice(db: Session, client_id: int, user: User) -> Client:
     return client
 
 
+def _store_pdf(db: Session, invoice: Invoice, user: User) -> None:
+    save_invoice_pdf(db, invoice, user)
+
+
 @router.get("", response_model=list[InvoiceListOut])
 def list_invoices(
     client_id: int | None = None,
@@ -66,7 +71,7 @@ def create_invoice(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> InvoiceOut:
-    _client_for_invoice(db, body.client_id, user)
+    client = _client_for_invoice(db, body.client_id, user)
     invoice = Invoice(
         client_id=body.client_id,
         created_by_id=user.id,
@@ -76,8 +81,11 @@ def create_invoice(
         due_date=body.due_date,
         notes=body.notes,
     )
+    invoice.client = client
     apply_line_items(invoice, body.line_items)
     db.add(invoice)
+    db.flush()
+    _store_pdf(db, invoice, user)
     db.commit()
     return invoice_to_out(_load_invoice(db, invoice.id, user))
 
@@ -106,6 +114,8 @@ def update_invoice(
         setattr(invoice, key, value)
     if line_items is not None:
         apply_line_items(invoice, body.line_items or [])
+    db.flush()
+    _store_pdf(db, invoice, user)
     db.commit()
     return invoice_to_out(_load_invoice(db, invoice.id, user))
 
@@ -118,6 +128,7 @@ def delete_invoice(
 ) -> None:
     invoice = _load_invoice(db, invoice_id, user)
     ensure_draft(invoice)
+    delete_invoice_pdf(db, invoice, user)
     db.delete(invoice)
     db.commit()
 
@@ -136,6 +147,8 @@ def send_invoice(
         invoice.sent_at = datetime.now(timezone.utc)
     if not invoice.public_token:
         invoice.public_token = new_public_token()
+    db.flush()
+    _store_pdf(db, invoice, user)
     db.commit()
     return invoice_to_out(_load_invoice(db, invoice.id, user))
 
@@ -151,6 +164,8 @@ def mark_paid(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Send the invoice before marking it paid")
     invoice.status = InvoiceStatus.paid.value
     invoice.paid_at = datetime.now(timezone.utc)
+    db.flush()
+    _store_pdf(db, invoice, user)
     db.commit()
     return invoice_to_out(_load_invoice(db, invoice.id, user))
 
@@ -165,6 +180,8 @@ def void_invoice(
     if invoice.status == InvoiceStatus.paid.value:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Paid invoices cannot be voided")
     invoice.status = InvoiceStatus.void.value
+    db.flush()
+    _store_pdf(db, invoice, user)
     db.commit()
     return invoice_to_out(_load_invoice(db, invoice.id, user))
 

@@ -13,14 +13,18 @@ Internal CRM for billing and client meeting notes. Staff sign in. Clients do **n
 | Staff auth | [features/auth.md](features/auth.md) |
 | Clients | [features/clients.md](features/clients.md) |
 | Invoices | [features/invoices.md](features/invoices.md) |
+| Accounting (annual report) | [features/accounting.md](features/accounting.md) |
+| Expenses | [features/expenses.md](features/expenses.md) |
 | Public invoice links and view counts | [features/public-invoice-links.md](features/public-invoice-links.md) |
 | Meeting notes | [features/meetings.md](features/meetings.md) |
 | Markdown notes | [features/markdown.md](features/markdown.md) |
 | Teams | [features/teams.md](features/teams.md) |
 | Dark mode | [features/dark-mode.md](features/dark-mode.md) |
+| File manager | [features/file-manager.md](features/file-manager.md) |
 | Staff dashboard | [features/dashboard.md](features/dashboard.md) |
 | Docker | [features/docker.md](features/docker.md) |
 | Postgres | [features/postgres.md](features/postgres.md) |
+| Shared Postgres (host cluster) | [features/shared-postgres.md](features/shared-postgres.md) |
 | Postgres replica / failover | [features/backups.md](features/backups.md) |
 
 ## Also read

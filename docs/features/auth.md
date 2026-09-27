@@ -8,12 +8,14 @@ Staff sign in with email and password, or with Google when the Google OAuth clie
 
 ## Behavior
 
-- First API start creates a seed staff user if that email is missing (`SEED_EMAIL` / `SEED_PASSWORD`), plus a default team `M2 Solution` and membership.
+- First API start creates seed staff users if those emails are missing (`SEED_EMAIL` comma-separated, default `matcote111@gmail.com` and `mathieu.laureti@gmail.com` / `SEED_PASSWORD`), plus a default team `M2 Solution` and membership for each. The old `admin@m2solution.com` default is treated as unset so both Gmail accounts are created.
 - Invalid credentials return 401.
 - Frontend stores the token in `localStorage` and sends `Authorization: Bearer …`.
 - Frontend stores the active team in `localStorage` (`m2_team_id`) and sends `X-Team-Id` on staff API calls (not auth or public invoices).
 - Unauthenticated staff routes redirect to `/login`.
 - Login email must be a real-looking address (`.local` is rejected by the validator).
+- Login form fields are not prefilled.
+- Staff can change their password from account settings (current password, new password, re-enter). Minimum 8 characters. Wrong current password returns 400.
 - Signed-in `admin@m2solution.com` can reset any staff password (including their own) from account settings. Privilege is that literal email, not `SEED_EMAIL`. Unknown target email returns 404. New password must differ from the current hash (400). Existing JWTs stay valid until expiry.
 - **Google sign-in** uses the authorization-code flow (backend holds `GOOGLE_CLIENT_SECRET`). The API trusts only a Google email with `email_verified` true, looks up `users.email` (case-insensitive, same as password login), and issues a JWT for that existing row. Unknown or unverified emails fail generically; the API never creates a user or team membership. Password login stays available as a fallback.
 - If `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, or `GOOGLE_REDIRECT_URI` is empty, `GET /api/auth/google/start` returns 503. The operator must create an OAuth client in Google Cloud; the app does not invent credentials.
@@ -24,6 +26,7 @@ Staff sign in with email and password, or with Google when the Google OAuth clie
 | ------ | ---- | ---- | ----- |
 | POST | `/api/auth/login` | none | JSON `{ email, password }` → `{ access_token }` |
 | GET | `/api/auth/me` | staff | Current user |
+| POST | `/api/auth/password` | staff | JSON `{ current_password, new_password }` — 204 |
 | POST | `/api/auth/admin/password-reset` | staff (`admin@m2solution.com` only) | JSON `{ email, new_password }` — 204; others 403; unknown email 404 |
 | GET | `/api/auth/google/start` | none | Redirects to Google authorize URL (CSRF `state`); 503 if Google env unset |
 | GET | `/api/auth/google/callback` | none | Google redirect; validates `state`, exchanges `code`, matches staff email → redirect to `{PUBLIC_APP_URL}/login?google_token=…` or `?google_error=1` |
@@ -32,7 +35,7 @@ Staff sign in with email and password, or with Google when the Google OAuth clie
 
 - `/login` — staff sign-in (email/password form plus **Sign in with Google**)
 - After Google returns, LoginPage consumes `google_token` (or shows a generic error for `google_error`), stores the JWT, loads `/api/auth/me`, then goes to the dashboard
-- Sidebar: click your name for account settings (team, **Dark mode**, manage teams, **Sign out**)
+- Sidebar: click your name for account settings (team, **Dark mode**, **Change password**, manage teams, **Sign out**)
 - Account menu shows **Reset staff password** only when the signed-in email is `admin@m2solution.com` (target email, new password, confirm)
 - No “connect a different Google account” or email-change UI; public invoice links stay unauthenticated
 
@@ -48,4 +51,4 @@ Staff sign in with email and password, or with Google when the Google OAuth clie
 
 ## Follow-ups / out of scope
 
-No email/forgot-password reset, invites, or roles beyond “staff”. No Microsoft/Apple, no user creation from Google, no account-linking table. This feature does not create `admin@m2solution.com` or change the seeder.
+No email/forgot-password reset, invites, or roles beyond “staff”. No Microsoft/Apple, no user creation from Google, no account-linking table. This feature does not create `admin@m2solution.com` or change the seeder beyond the Gmail seed list above. Admin password reset still only allows literal `admin@m2solution.com` (no longer the seed default).

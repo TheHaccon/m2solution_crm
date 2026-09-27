@@ -102,6 +102,20 @@ export type Meeting = {
   updated_at: string
 }
 
+export type FileNode = {
+  id: number
+  kind: 'folder' | 'file'
+  name: string
+  parent_id: number | null
+  space: 'team' | 'personal'
+  mime_type: string | null
+  size_bytes: number | null
+  storage_backend: string
+  created_by_id: number
+  created_at: string
+  updated_at: string
+}
+
 export type Dashboard = {
   unpaid_count: number
   unpaid_total: string | number

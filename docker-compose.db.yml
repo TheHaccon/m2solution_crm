@@ -1,0 +1,104 @@
+# Shared Postgres cluster (project: shared-db).
+# Works with: docker compose -f docker-compose.db.yml <cmd>
+# Secrets and cluster-only vars load from postgres.env via env_file (no --env-file needed).
+# Path/publish overrides in postgres.env also apply when using ./scripts/db-compose.sh.
+name: shared-db
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-crm}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-crm}
+    volumes:
+      - ${PGDATA_PRIMARY:-/mnt/data_main/m2solution_crm/pgdata}:/var/lib/postgresql/data
+      - ./deploy/postgres/configure-pg-access.sh:/usr/local/bin/configure-pg-access.sh:ro
+    ports:
+      - "${POSTGRES_PUBLISH_LAN:-192.168.2.99:5432}:5432"
+      - "${POSTGRES_PUBLISH_WG:-10.50.0.2:5432}:5432"
+      - "127.0.0.1:5432:5432"
+    networks:
+      - shared-db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-crm} -d ${POSTGRES_DB:-crm}"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+    restart: unless-stopped
+
+  db-init:
+    image: postgres:16
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - postgres.env
+    environment:
+      PGHOST: db
+      PGUSER: ${POSTGRES_USER:-crm}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-crm}
+      PGDATA: /var/lib/postgresql/data
+    volumes:
+      - ${PGDATA_PRIMARY:-/mnt/data_main/m2solution_crm/pgdata}:/var/lib/postgresql/data
+      - ./deploy/postgres/ensure-databases.sh:/ensure-databases.sh:ro
+      - ./deploy/postgres/configure-pg-access.sh:/configure-pg-access.sh:ro
+    networks:
+      - shared-db
+    entrypoint: ["/bin/bash", "-c", "/ensure-databases.sh && /configure-pg-access.sh"]
+    restart: on-failure
+
+  db-replica:
+    image: postgres:16
+    entrypoint: ["/usr/local/bin/replica-entrypoint.sh"]
+    env_file:
+      - postgres.env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-crm}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-crm}
+      PRIMARY_HOST: db
+      REPLICATION_USER: replicator
+      REPLICATION_SLOT: crm_replica
+    volumes:
+      - ${PGDATA_REPLICA:-/mnt/data_backup/m2solution_crm/pgdata}:/var/lib/postgresql/data
+      - ./deploy/postgres/replica-entrypoint.sh:/usr/local/bin/replica-entrypoint.sh:ro
+    ports:
+      - "127.0.0.1:5433:5432"
+    networks:
+      - shared-db
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-crm} -d ${POSTGRES_DB:-crm}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 40s
+    restart: unless-stopped
+
+  pgweb:
+    image: sosedoff/pgweb:latest
+    env_file:
+      - postgres.env
+    ports:
+      - "${PGWEB_PUBLISH:-192.168.2.99:8085}:8081"
+    environment:
+      PGWEB_BIND: 0.0.0.0:8081
+      # Auto-connect on startup. Do not set PGWEB_LOCK_SESSION (any value, even "false", locks the DB).
+      # Do not set PGWEB_SESSIONS — it clears DATABASE_URL and shows the connect form instead.
+      PGWEB_DATABASE_URL: postgres://${POSTGRES_USER:-crm}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-crm}?sslmode=disable
+    networks:
+      - shared-db
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+networks:
+  shared-db:
+    name: shared-db
+    external: true

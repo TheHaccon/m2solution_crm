@@ -1,30 +1,30 @@
 # Run
 
-Two Compose projects can run at the same time. They share **one Postgres instance** (prod `db` + replica) and use **different databases**: `crm` (prod) and `crm_dev` (dev). Published app ports do not overlap.
+Three Compose projects: **shared Postgres**, **CRM prod**, and **CRM dev**. Postgres is started first; CRM apps join network `shared-db` and use hostname `db`.
 
 | Stack | Compose file | Project | Who uses it |
 | ----- | ------------ | ------- | ----------- |
-| **Prod** | `docker-compose.yml` | `crm` | Public site `https://crm.m2solution.ca` (VPS nginx → WireGuard `10.50.0.2:8081`) |
-| **Dev** | `docker-compose.dev.yml` | `crm-dev` | Staff only, via SSH local forward to Vite |
+| **Postgres** | `docker-compose.db.yml` | `shared-db` | All services on this host |
+| **Prod** | `docker-compose.yml` | `crm` | Public site `https://crm.m2solution.ca` (VPS → `10.50.0.2:8081`) |
+| **Dev** | `docker-compose.dev.yml` | `crm-dev` | Staff only, SSH forward to Vite |
 
-Seed staff user: `admin@m2solution.com` / `changeme` (override with `SEED_EMAIL` / `SEED_PASSWORD`). Each stack seeds its **own** database (`crm` vs `crm_dev`) and a default team `M2 Solution`.
+Copy [`.env.example`](../.env.example) → `.env` (CRM app secrets) and [`postgres.env.example`](../postgres.env.example) → `postgres.env` (cluster secrets). Keep `POSTGRES_USER` / `POSTGRES_PASSWORD` in sync between both files. `docker compose -f docker-compose.db.yml` loads cluster secrets from `postgres.env` via `env_file`; use `./scripts/db-compose.sh` if you override disk paths or publish addresses in `postgres.env`.
 
-On an existing database, apply Alembic `002_teams` (adds `teams`, `team_members`, `clients.team_id`, `invoices.created_by_id`). `create_all` will not add those columns.
+Seed staff: `matcote111@gmail.com` and `mathieu.laureti@gmail.com` / `changeme` (comma-separated `SEED_EMAIL` / `SEED_PASSWORD`). Each CRM database (`crm` vs `crm_dev`) seeds independently.
 
-Copy [`.env.example`](../.env.example) to `.env` and set `SECRET_KEY`, `POSTGRES_PASSWORD`, and `REPLICATION_PASSWORD`. Compose interpolates that file automatically. Prod share links use `PUBLIC_APP_URL`; dev uses `DEV_PUBLIC_APP_URL` so the public hostname is not baked into the hot-reload stack.
+## Shared Postgres (start first)
 
-### Google staff sign-in (optional)
+```bash
+./scripts/db-compose.sh up -d
+# same as: docker compose -f docker-compose.db.yml up -d
+```
 
-Create an OAuth 2.0 **Web application** client in [Google Cloud Console](https://console.cloud.google.com/apis/credentials). Set authorized redirect URIs to match `GOOGLE_REDIRECT_URI`:
-
-| Environment | Example redirect URI |
-| ----------- | -------------------- |
-| Prod | `https://crm.m2solution.ca/api/auth/google/callback` |
-| Dev (Vite proxies `/api`) | `http://localhost:5173/api/auth/google/callback` |
-
-Put `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_REDIRECT_URI` in root `.env` (Compose) and/or `backend/.env` (local uvicorn). Leave them empty to keep password-only login; `/api/auth/google/start` then returns 503. Details: [features/auth.md](features/auth.md).
-
-Start **prod `db`** (and `db-init`) before the dev stack. Dev has no Postgres of its own; it joins Docker network `crm-db` and talks to hostname `db`.
+- Primary: `127.0.0.1:5432`, `192.168.2.99:5432`, `10.50.0.2:5432`
+- Standby: `127.0.0.1:5433`
+- Databases: `crm` (bootstrap), `crm_dev` (+ any name in `POSTGRES_EXTRA_DATABASES`)
+- **pgweb:** `http://192.168.2.99:8085` (LAN + basic auth) — opens on `crm`; switch DB from the sidebar
+- Cluster files: `/mnt/data_main/m2solution_crm/pgdata` — see [features/shared-postgres.md](features/shared-postgres.md)
+- `docker compose -f docker-compose.db.yml down` leaves network `shared-db` in place (CRM still attached). Remove everything: `./scripts/db-compose.sh down --force`
 
 ## Prod
 
@@ -32,64 +32,38 @@ Start **prod `db`** (and `db-init`) before the dev stack. Dev has no Postgres of
 docker compose up --build -d
 ```
 
-- UI / API (same origin): **`10.50.0.2:8081`** (WireGuard). Host **8080** is Pterodactyl Wings, not the CRM.
-- Postgres primary: `127.0.0.1:5432` — `psql -h 127.0.0.1 -U crm -d crm`
-- Dev database on the same instance: `psql -h 127.0.0.1 -U crm -d crm_dev` (created by `db-init`)
-- Standby: `127.0.0.1:5433` when `db-replica` is running (copies the whole instance, including `crm_dev`)
-
-Cluster files: `/mnt/data_main/m2solution_crm/pgdata`. Streaming replica and failover: [features/backups.md](features/backups.md).
-
-If an older Compose project named `m2solution_crm` is still running, it holds 5432/5433:
-
-```bash
-docker compose -p m2solution_crm down
-docker compose up --build -d
-```
-
-Override the public bind with `PROD_WEB_PUBLISH` in `.env` (default `10.50.0.2:8081`). VPS nginx must `proxy_pass` that address.
+- UI / API: **`10.50.0.2:8081`** (WireGuard). Host **8080** is Pterodactyl Wings.
+- File blobs: `/mnt/data_main/m2solution_crm/files` (not replicated)
 
 ## Dev (SSH port forward)
 
 ```bash
-docker compose up -d db db-init
 docker compose -f docker-compose.dev.yml up --build -d
 ```
 
-- Vite: **`127.0.0.1:5173`** (not on LAN or WireGuard)
-- API (direct): `127.0.0.1:8000` — the UI still proxies `/api` through Vite, so you normally only forward 5173
-- Database: `crm_dev` on the prod instance (`127.0.0.1:5432`). Network `crm-db` must already exist (prod Compose creates it).
+- Vite: `127.0.0.1:5173` — forward with `ssh -N -L 5173:127.0.0.1:5173 user@this-server`
+- Database: `crm_dev` on the shared instance
+- File blobs: `/mnt/data_main/m2solution_crm/files_dev`
 
-From your laptop:
+## Cutover from embedded Postgres (one-time)
+
+If Postgres still runs inside the old `crm` compose project:
 
 ```bash
-ssh -N -L 5173:127.0.0.1:5173 user@this-server
+docker compose down
+docker compose -f docker-compose.dev.yml down
+docker network rm crm-db 2>/dev/null || true
+./scripts/db-compose.sh up -d
+docker compose up --build -d
+docker compose -f docker-compose.dev.yml up -d
 ```
 
-Then open [http://localhost:5173](http://localhost:5173). Forward `8000` as well only if you want to hit the API without Vite.
+Existing `pgdata` on disk is reused — no dump/restore.
 
 ## Local (no Docker)
 
-Postgres must already be reachable at `127.0.0.1:5432`. Copy `backend/.env.example` to `backend/.env` and match `POSTGRES_PASSWORD`. Use database `crm` or `crm_dev` in `DATABASE_URL` depending on which data you want.
-
-Terminal 1 — API:
-
-```bash
-cd backend
-python -m venv .venv
-.venv/bin/pip install -r requirements.txt
-.venv/bin/uvicorn app.main:app --reload --port 8000
-```
-
-Terminal 2 — UI:
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-UI: [http://localhost:5173](http://localhost:5173) (proxies `/api` to the API).
+Postgres must be reachable at `127.0.0.1:5432` (or LAN/WG address). Copy `backend/.env.example` to `backend/.env` and set `DATABASE_URL` to `crm` or `crm_dev`.
 
 ## Health
 
-`GET /api/health` → `{"status":"ok"}`. Used by Compose healthchecks. Prod through the tunnel: `https://crm.m2solution.ca/api/health`.
+`GET /api/health` on CRM. Replica: `scripts/replica-status.sh`. Prod through tunnel: `https://crm.m2solution.ca/api/health`.

@@ -1,33 +1,45 @@
 version: 2
 repo: TheHaccon/m2solution_crm
-feature_slug: google-sign-in
-input_doc: docs/input/2026-09-27-google-sign-in.md
+feature_slug: files-expenses-accounting
+input_doc: docs/input/2026-09-27-files-expenses-accounting.md
 delivery_mode: batch
 phase: pr_open
+delivery_report: docs/delivery/feature-files-expenses-accounting.md
 gates:
   gate_1:
-    approved_at: "2026-09-27T15:05:00-04:00"
-    user_quote: "create"
+    approved_at: "2026-09-27T15:42:00-04:00"
+    user_quote: "Create the GitHub issues"
   gate_2:
-    approved_at: "2026-09-27T15:08:00-04:00"
-    user_quote: "yes"
+    approved_at: "2026-09-27T15:48:00-04:00"
+    user_quote: "yes and make sur it works on prod"
 issues:
-  - number: 3
-    url: https://github.com/TheHaccon/m2solution_crm/issues/3
-    title: "[auth] Issue staff JWT after Google email match"
-  - number: 4
-    url: https://github.com/TheHaccon/m2solution_crm/issues/4
-    title: "[auth] Add Sign in with Google on /login"
-  - number: 5
-    url: https://github.com/TheHaccon/m2solution_crm/issues/5
-    title: "[ops] Document Google OAuth env and operator setup"
-branch: feature/google-sign-in
-delivery_report: docs/delivery/feature-google-sign-in.md
+  - number: 7
+    url: https://github.com/TheHaccon/m2solution_crm/issues/7
+    title: "[files] Staff file manager with team and personal spaces"
+  - number: 8
+    url: https://github.com/TheHaccon/m2solution_crm/issues/8
+    title: "[invoices] Write invoice PDFs into Personal Invoices folder"
+  - number: 9
+    url: https://github.com/TheHaccon/m2solution_crm/issues/9
+    title: "[expenses] Track personal expenses with categories receipts and recurrence"
+  - number: 10
+    url: https://github.com/TheHaccon/m2solution_crm/issues/10
+    title: "[accounting] Show calendar-year billed collected and expense report with CSV"
+  - number: 11
+    url: https://github.com/TheHaccon/m2solution_crm/issues/11
+    title: "[auth] Let staff change their own password"
+  - number: 12
+    url: https://github.com/TheHaccon/m2solution_crm/issues/12
+    title: "[auth] Seed two Gmail staff accounts and stop prefilling login"
+  - number: 13
+    url: https://github.com/TheHaccon/m2solution_crm/issues/13
+    title: "[ops] Run CRM Postgres as the shared host cluster"
+branch: feature/files-expenses-accounting
 pr:
-  number: 6
-  url: https://github.com/TheHaccon/m2solution_crm/pull/6
+  number: 14
+  url: https://github.com/TheHaccon/m2solution_crm/pull/14
   state: open
 labels:
   managed: agent-managed
-updated_at: "2026-09-27T19:28:00Z"
+updated_at: "2026-09-27T16:05:00-04:00"
 updated_by: documenter

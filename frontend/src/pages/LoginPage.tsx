@@ -7,8 +7,8 @@ export function LoginPage() {
   const { user, loading, login, loginWithToken } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
   const googleHandled = useRef(false)
-  const [email, setEmail] = useState('admin@m2solution.com')
-  const [password, setPassword] = useState('changeme')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [googlePending, setGooglePending] = useState(() => Boolean(searchParams.get('google_token')))
@@ -28,6 +28,11 @@ export function LoginPage() {
     if (googleError) {
       setGooglePending(false)
       setError('Google sign-in failed')
+      return
+    }
+
+    if (!googleToken) {
+      setGooglePending(false)
       return
     }
 
@@ -67,6 +72,8 @@ export function LoginPage() {
           <input
             className="mt-1 w-full rounded-lg border border-ink/15 bg-paper px-3 py-2 outline-none focus:border-gold"
             type="email"
+            placeholder="you@gmail.com"
+            autoComplete="username"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -78,6 +85,7 @@ export function LoginPage() {
           <input
             className="mt-1 w-full rounded-lg border border-ink/15 bg-paper px-3 py-2 outline-none focus:border-gold"
             type="password"
+            autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required

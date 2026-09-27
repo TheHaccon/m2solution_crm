@@ -12,7 +12,10 @@ const links = [
   { to: '/dashboard', label: 'Dashboard' },
   { to: '/clients', label: 'Clients' },
   { to: '/invoices', label: 'Invoices' },
+  { to: '/expenses', label: 'Expenses' },
+  { to: '/accounting', label: 'Accounting' },
   { to: '/meetings', label: 'Meetings' },
+  { to: '/files', label: 'Files' },
 ]
 
 function StaffShell() {
@@ -21,10 +24,17 @@ function StaffShell() {
   const { theme, toggleTheme } = useTheme()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
-  const [resetOpen, setResetOpen] = useState(false)
-  const [targetEmail, setTargetEmail] = useState('')
+  const [passwordOpen, setPasswordOpen] = useState(false)
+  const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordError, setPasswordError] = useState<string | null>(null)
+  const [passwordOk, setPasswordOk] = useState(false)
+  const [passwordSaving, setPasswordSaving] = useState(false)
+  const [resetOpen, setResetOpen] = useState(false)
+  const [resetTargetEmail, setResetTargetEmail] = useState('')
+  const [resetNewPassword, setResetNewPassword] = useState('')
+  const [resetConfirmPassword, setResetConfirmPassword] = useState('')
   const [resetError, setResetError] = useState<string | null>(null)
   const [resetOk, setResetOk] = useState(false)
   const [resetSaving, setResetSaving] = useState(false)
@@ -34,13 +44,14 @@ function StaffShell() {
   const activeTeam = teams.find((t) => t.id === teamId)
 
   useEffect(() => {
-    if (!menuOpen && !resetOpen) return
+    if (!menuOpen && !passwordOpen && !resetOpen) return
     function onPointer(e: MouseEvent) {
       if (menuOpen && menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false)
     }
     function onKey(e: KeyboardEvent) {
       if (e.key !== 'Escape') return
-      if (resetOpen) setResetOpen(false)
+      if (passwordOpen) setPasswordOpen(false)
+      else if (resetOpen) setResetOpen(false)
       else setMenuOpen(false)
     }
     document.addEventListener('mousedown', onPointer)
@@ -49,18 +60,29 @@ function StaffShell() {
       document.removeEventListener('mousedown', onPointer)
       document.removeEventListener('keydown', onKey)
     }
-  }, [menuOpen, resetOpen])
+  }, [menuOpen, passwordOpen, resetOpen])
 
   useEffect(() => {
     setMenuOpen(false)
+    setPasswordOpen(false)
     setResetOpen(false)
   }, [location.pathname, teamId])
 
-  function openReset() {
+  function openPassword() {
     setMenuOpen(false)
-    setTargetEmail('')
+    setCurrentPassword('')
     setNewPassword('')
     setConfirmPassword('')
+    setPasswordError(null)
+    setPasswordOk(false)
+    setPasswordOpen(true)
+  }
+
+  function openReset() {
+    setMenuOpen(false)
+    setResetTargetEmail('')
+    setResetNewPassword('')
+    setResetConfirmPassword('')
     setResetError(null)
     setResetOk(false)
     setResetOpen(true)
@@ -70,11 +92,11 @@ function StaffShell() {
     e.preventDefault()
     setResetError(null)
     setResetOk(false)
-    if (newPassword !== confirmPassword) {
+    if (resetNewPassword !== resetConfirmPassword) {
       setResetError('New passwords do not match')
       return
     }
-    if (newPassword.length < 8) {
+    if (resetNewPassword.length < 8) {
       setResetError('New password must be at least 8 characters')
       return
     }
@@ -82,16 +104,45 @@ function StaffShell() {
     try {
       await api('/api/auth/admin/password-reset', {
         method: 'POST',
-        body: JSON.stringify({ email: targetEmail, new_password: newPassword }),
+        body: JSON.stringify({ email: resetTargetEmail, new_password: resetNewPassword }),
       })
-      setTargetEmail('')
-      setNewPassword('')
-      setConfirmPassword('')
+      setResetTargetEmail('')
+      setResetNewPassword('')
+      setResetConfirmPassword('')
       setResetOk(true)
     } catch (err) {
       setResetError(err instanceof Error ? err.message : 'Could not reset password')
     } finally {
       setResetSaving(false)
+    }
+  }
+
+  async function onChangePassword(e: FormEvent) {
+    e.preventDefault()
+    setPasswordError(null)
+    setPasswordOk(false)
+    if (newPassword !== confirmPassword) {
+      setPasswordError('New passwords do not match')
+      return
+    }
+    if (newPassword.length < 8) {
+      setPasswordError('New password must be at least 8 characters')
+      return
+    }
+    setPasswordSaving(true)
+    try {
+      await api('/api/auth/password', {
+        method: 'POST',
+        body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+      })
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+      setPasswordOk(true)
+    } catch (err) {
+      setPasswordError(err instanceof Error ? err.message : 'Could not change password')
+    } finally {
+      setPasswordSaving(false)
     }
   }
 
@@ -103,8 +154,8 @@ function StaffShell() {
   }
 
   return (
-    <div className="flex min-h-svh">
-      <aside className="no-print flex w-56 shrink-0 flex-col bg-navy text-cream">
+    <div className="flex h-svh min-h-0 print:h-auto">
+      <aside className="no-print sticky top-0 flex h-svh w-56 shrink-0 flex-col bg-navy text-cream">
         <div className="border-b border-white/10 px-5 py-6">
           <p className="font-serif text-xl text-gold-2">M2 Solution</p>
           <p className="mt-0.5 text-xs uppercase tracking-[0.18em] text-white/40">CRM</p>
@@ -166,6 +217,13 @@ function StaffShell() {
                     />
                   </span>
                 </button>
+                <button
+                  type="button"
+                  onClick={openPassword}
+                  className="block w-full rounded-lg px-2 py-1.5 text-left text-sm text-ink/70 hover:bg-ink/10 hover:text-ink"
+                >
+                  Change password
+                </button>
                 {isAdmin ? (
                   <button
                     type="button"
@@ -206,27 +264,27 @@ function StaffShell() {
           </button>
         </div>
       </aside>
-      <main className="min-w-0 flex-1 p-6 sm:p-8">
+      <main className="min-h-0 min-w-0 flex-1 overflow-y-auto p-6 sm:p-8 print:overflow-visible">
         <Outlet key={teamId ?? 'none'} />
       </main>
-      {resetOpen ? (
+      {passwordOpen ? (
         <div
           className="fixed inset-0 z-50 grid place-items-center bg-navy/50 p-4"
           onMouseDown={(e) => {
-            if (e.target === e.currentTarget) setResetOpen(false)
+            if (e.target === e.currentTarget) setPasswordOpen(false)
           }}
         >
-          <form className="w-full max-w-sm rounded-2xl bg-paper p-5 text-ink shadow-lg" onSubmit={(e) => void onAdminReset(e)}>
-            <h2 className="font-serif text-xl">Reset staff password</h2>
+          <form className="w-full max-w-sm rounded-2xl bg-paper p-5 text-ink shadow-lg" onSubmit={(e) => void onChangePassword(e)}>
+            <h2 className="font-serif text-xl">Change password</h2>
             <label className="mt-4 block text-sm text-ink/70">
-              Staff email
+              Current password
               <input
                 autoFocus
-                type="email"
-                autoComplete="off"
+                type="password"
+                autoComplete="current-password"
                 className="mt-1 w-full rounded-lg border border-ink/15 bg-paper px-3 py-2 outline-none focus:border-gold"
-                value={targetEmail}
-                onChange={(e) => setTargetEmail(e.target.value)}
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
                 required
               />
             </label>
@@ -250,6 +308,72 @@ function StaffShell() {
                 className="mt-1 w-full rounded-lg border border-ink/15 bg-paper px-3 py-2 outline-none focus:border-gold"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                minLength={8}
+              />
+            </label>
+            {passwordError ? <p className="mt-3 text-sm text-rose-700">{passwordError}</p> : null}
+            {passwordOk ? <p className="mt-3 text-sm text-ink/70">Password updated.</p> : null}
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                className="rounded-lg border border-ink/15 bg-paper px-3 py-1.5 text-sm hover:bg-ink/5"
+                onClick={() => setPasswordOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={passwordSaving}
+                className="rounded-lg bg-navy px-3 py-1.5 text-sm font-medium text-cream hover:bg-navy-2 disabled:opacity-40"
+              >
+                {passwordSaving ? 'Saving…' : 'Save'}
+              </button>
+            </div>
+          </form>
+        </div>
+      ) : null}
+      {resetOpen ? (
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-navy/50 p-4"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) setResetOpen(false)
+          }}
+        >
+          <form className="w-full max-w-sm rounded-2xl bg-paper p-5 text-ink shadow-lg" onSubmit={(e) => void onAdminReset(e)}>
+            <h2 className="font-serif text-xl">Reset staff password</h2>
+            <label className="mt-4 block text-sm text-ink/70">
+              Staff email
+              <input
+                autoFocus
+                type="email"
+                autoComplete="off"
+                className="mt-1 w-full rounded-lg border border-ink/15 bg-paper px-3 py-2 outline-none focus:border-gold"
+                value={resetTargetEmail}
+                onChange={(e) => setResetTargetEmail(e.target.value)}
+                required
+              />
+            </label>
+            <label className="mt-3 block text-sm text-ink/70">
+              New password
+              <input
+                type="password"
+                autoComplete="new-password"
+                className="mt-1 w-full rounded-lg border border-ink/15 bg-paper px-3 py-2 outline-none focus:border-gold"
+                value={resetNewPassword}
+                onChange={(e) => setResetNewPassword(e.target.value)}
+                required
+                minLength={8}
+              />
+            </label>
+            <label className="mt-3 block text-sm text-ink/70">
+              Re-enter new password
+              <input
+                type="password"
+                autoComplete="new-password"
+                className="mt-1 w-full rounded-lg border border-ink/15 bg-paper px-3 py-2 outline-none focus:border-gold"
+                value={resetConfirmPassword}
+                onChange={(e) => setResetConfirmPassword(e.target.value)}
                 required
                 minLength={8}
               />

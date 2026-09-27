@@ -8,7 +8,7 @@ Staff belong to one or more **teams**. Click your name at the bottom of the side
 
 ## Behavior
 
-- Seed creates a default team named `M2 Solution` and adds the seed staff user.
+- Seed creates a default team named `M2 Solution` and adds each seed staff user (`matcote111@gmail.com` and `mathieu.laureti@gmail.com` by default).
 - Existing clients are assigned to that team; existing invoices are owned by the first staff user.
 - Switching team remounts staff pages so clients/meetings/dashboard meetings refetch. The invoices list still shows only the signed-in user's invoices.
 - Adding a member requires an **existing** staff email. Creating staff accounts is still seed/DB.

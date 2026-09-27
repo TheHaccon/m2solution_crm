@@ -9,6 +9,7 @@ Staff create QuickBooks-lite invoices (line items, totals, status). Payment is *
 ## Behavior
 
 - New invoices are **draft**. Line items required. Totals are computed on the server (`qty × unit_price`).
+- A PDF is written to the owner's personal **Invoices** folder (`Files` → Personal) as `{number}.pdf`. Edits and status changes overwrite that file; deleting a draft removes it.
 - Numbers are sequential: `INV-{year}-0001`.
 - **Send** sets status `sent`, stamps `sent_at`, and creates `public_token` if missing.
 - **Mark paid** allowed from `sent` (or already `paid`). Sets `paid_at`.
@@ -44,6 +45,8 @@ Staff create QuickBooks-lite invoices (line items, totals, status). Payment is *
 - `backend/app/api/invoices.py`
 - `backend/app/models/invoice.py`
 - `backend/app/services/invoices.py`
+- `backend/app/services/invoice_pdf.py`
+- `backend/app/services/invoice_files.py`
 - `frontend/src/pages/InvoicesListPage.tsx`
 - `frontend/src/pages/InvoiceFormPage.tsx`
 - `frontend/src/pages/InvoiceDetailPage.tsx`
@@ -51,4 +54,4 @@ Staff create QuickBooks-lite invoices (line items, totals, status). Payment is *
 
 ## Follow-ups / out of scope
 
-No taxes, estimates, recurring invoices, or email send. Public link + view count: [public-invoice-links.md](public-invoice-links.md).
+No taxes, estimates, recurring invoices, or email send. Year-end billed/collected and expenses: [accounting.md](accounting.md), [expenses.md](expenses.md). Public link + view count: [public-invoice-links.md](public-invoice-links.md).

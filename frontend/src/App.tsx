@@ -1,10 +1,13 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 
 import { StaffLayout } from './layouts/StaffLayout'
+import { AccountingPage } from './pages/AccountingPage'
 import { ClientDetailPage } from './pages/ClientDetailPage'
 import { ClientFormPage } from './pages/ClientFormPage'
 import { ClientsListPage } from './pages/ClientsListPage'
 import { DashboardPage } from './pages/DashboardPage'
+import { ExpensesPage } from './pages/ExpensesPage'
+import { FilesPage } from './pages/FilesPage'
 import { InvoiceDetailPage } from './pages/InvoiceDetailPage'
 import { InvoiceFormPage } from './pages/InvoiceFormPage'
 import { InvoicesListPage } from './pages/InvoicesListPage'
@@ -31,10 +34,13 @@ export default function App() {
         <Route path="/invoices/new" element={<InvoiceFormPage />} />
         <Route path="/invoices/:id" element={<InvoiceDetailPage />} />
         <Route path="/invoices/:id/edit" element={<InvoiceFormPage />} />
+        <Route path="/expenses" element={<ExpensesPage />} />
+        <Route path="/accounting" element={<AccountingPage />} />
         <Route path="/meetings" element={<MeetingsListPage />} />
         <Route path="/meetings/new" element={<MeetingFormPage />} />
         <Route path="/meetings/:id" element={<MeetingDetailPage />} />
         <Route path="/meetings/:id/edit" element={<MeetingFormPage />} />
+        <Route path="/files" element={<FilesPage />} />
         <Route path="/teams" element={<TeamsPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
