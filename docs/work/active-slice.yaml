@@ -3,8 +3,8 @@ repo: TheHaccon/m2solution_crm
 feature_slug: invoice-schema-drift
 input_doc: docs/input/2026-09-27-invoice-schema-drift.md
 delivery_mode: single
-phase: implementing
-delivery_report: ""
+phase: pr_open
+delivery_report: docs/delivery/16-invoice-schema-drift.md
 gates:
   gate_1:
     approved_at: "2026-09-27T16:32:00-04:00"
@@ -18,10 +18,10 @@ issues:
     title: "[database] Repair missing invoice and client columns on live CRM"
 branch: fix/invoice-schema-drift
 pr:
-  number: null
-  url: ""
-  state: not_opened
+  number: 18
+  url: https://github.com/TheHaccon/m2solution_crm/pull/18
+  state: open
 labels:
   managed: agent-managed
-updated_at: "2026-09-27T16:39:00-04:00"
-updated_by: orchestrator
+updated_at: "2026-09-27T20:46:00Z"
+updated_by: documenter

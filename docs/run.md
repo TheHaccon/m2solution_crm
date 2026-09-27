@@ -37,7 +37,7 @@ docker compose up --build -d
 
 ### Schema migrations (Alembic)
 
-After pulling a revision that adds columns (or a repair revision such as `005_repair_invoice_client_columns`), apply without recreating the Postgres volume:
+After pulling a revision that adds columns (or a repair revision such as `005_repair_inv_client_cols`), apply without recreating the Postgres volume:
 
 ```bash
 docker compose exec api alembic upgrade head

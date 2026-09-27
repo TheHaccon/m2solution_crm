@@ -32,3 +32,5 @@ Internal CRM for billing and client meeting notes. Staff sign in. Clients do **n
 - [overview.md](overview.md) — product scope and what v1 does not include
 - [architecture.md](architecture.md) — stack, folders, data model, env
 - [run.md](run.md) — local and Docker
+- [delivery/16-invoice-schema-drift.md](delivery/16-invoice-schema-drift.md) — delivery report for invoice/client schema repair (#16)
+
