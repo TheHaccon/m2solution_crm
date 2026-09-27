@@ -1,6 +1,6 @@
 """Repair missing clients.team_id and invoices.created_by_id
 
-Revision ID: 005_repair_invoice_client_columns
+Revision ID: 005_repair_inv_client_cols
 Revises: 004_expenses
 Create Date: 2026-09-27
 
@@ -14,7 +14,7 @@ from typing import Sequence, Union
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "005_repair_invoice_client_columns"
+revision: str = "005_repair_inv_client_cols"
 down_revision: Union[str, Sequence[str], None] = "004_expenses"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
