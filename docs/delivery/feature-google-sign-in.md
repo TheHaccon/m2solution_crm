@@ -1,7 +1,7 @@
 # Delivery: Staff Google sign-in
 
 ## Status
-pr-open
+merged
 
 ## Links
 - Issue(s): #3 — https://github.com/TheHaccon/m2solution_crm/issues/3 · #4 — https://github.com/TheHaccon/m2solution_crm/issues/4 · #5 — https://github.com/TheHaccon/m2solution_crm/issues/5
