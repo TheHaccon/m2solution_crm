@@ -16,16 +16,19 @@ services:
       COMPANY_EMAIL: ${COMPANY_EMAIL:-billing@m2solution.com}
       COMPANY_ADDRESS: ${COMPANY_ADDRESS:-}
       COMPANY_PHONE: ${COMPANY_PHONE:-}
+      FILES_ROOT: /data/files
+      FILES_MAX_BYTES: ${FILES_MAX_BYTES:-25000000}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-}
     volumes:
       - ./backend/app:/app/app
+      - ${DEV_FILES_ROOT:-/mnt/data_main/m2solution_crm/files_dev}:/data/files
     ports:
       - "127.0.0.1:8000:8000"
     networks:
       - default
-      - db-shared
+      - shared-db
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/api/health"]
       interval: 5s
@@ -54,6 +57,6 @@ volumes:
   frontend_node_modules:
 
 networks:
-  db-shared:
-    name: crm-db
+  shared-db:
+    name: shared-db
     external: true

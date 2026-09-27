@@ -1,69 +1,6 @@
 name: crm
 
 services:
-  db:
-    image: postgres:16
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-crm}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
-      POSTGRES_DB: ${POSTGRES_DB:-crm}
-    volumes:
-      - ${PGDATA_PRIMARY:-/mnt/data_main/m2solution_crm/pgdata}:/var/lib/postgresql/data
-    ports:
-      - "127.0.0.1:5432:5432"
-    networks:
-      - default
-      - db-shared
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-crm} -d ${POSTGRES_DB:-crm}"]
-      interval: 5s
-      timeout: 3s
-      retries: 12
-      start_period: 10s
-    restart: unless-stopped
-
-  db-init:
-    image: postgres:16
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      PGHOST: db
-      PGUSER: ${POSTGRES_USER:-crm}
-      PGPASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
-      DEV_POSTGRES_DB: ${DEV_POSTGRES_DB:-crm_dev}
-    volumes:
-      - ./deploy/postgres/ensure-extra-db.sh:/ensure-extra-db.sh:ro
-    entrypoint: ["/bin/bash", "/ensure-extra-db.sh"]
-    restart: on-failure
-
-  db-replica:
-    image: postgres:16
-    entrypoint: ["/usr/local/bin/replica-entrypoint.sh"]
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-crm}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
-      POSTGRES_DB: ${POSTGRES_DB:-crm}
-      REPLICATION_PASSWORD: ${REPLICATION_PASSWORD:?set REPLICATION_PASSWORD in .env}
-      PRIMARY_HOST: db
-      REPLICATION_USER: replicator
-      REPLICATION_SLOT: crm_replica
-    volumes:
-      - ${PGDATA_REPLICA:-/mnt/data_backup/m2solution_crm/pgdata}:/var/lib/postgresql/data
-      - ./deploy/postgres/replica-entrypoint.sh:/usr/local/bin/replica-entrypoint.sh:ro
-    ports:
-      - "127.0.0.1:5433:5432"
-    depends_on:
-      db:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-crm} -d ${POSTGRES_DB:-crm}"]
-      interval: 5s
-      timeout: 3s
-      retries: 20
-      start_period: 40s
-    restart: unless-stopped
-
   api:
     build:
       context: ./backend
@@ -78,18 +15,22 @@ services:
       COMPANY_EMAIL: ${COMPANY_EMAIL:-billing@m2solution.com}
       COMPANY_ADDRESS: ${COMPANY_ADDRESS:-}
       COMPANY_PHONE: ${COMPANY_PHONE:-}
+      FILES_ROOT: /data/files
+      FILES_MAX_BYTES: ${FILES_MAX_BYTES:-25000000}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-}
-    depends_on:
-      db:
-        condition: service_healthy
+    volumes:
+      - ${FILES_ROOT:-/mnt/data_main/m2solution_crm/files}:/data/files
+    networks:
+      - default
+      - shared-db
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/api/health"]
       interval: 5s
       timeout: 3s
       retries: 12
-      start_period: 10s
+      start_period: 20s
     restart: unless-stopped
 
   web:
@@ -103,5 +44,6 @@ services:
     restart: unless-stopped
 
 networks:
-  db-shared:
-    name: crm-db
+  shared-db:
+    name: shared-db
+    external: true

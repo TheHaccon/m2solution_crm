@@ -17,7 +17,13 @@ from app.core.security import (
     verify_password,
 )
 from app.models.user import User
-from app.schemas.auth import AdminPasswordResetRequest, LoginRequest, TokenResponse, UserOut
+from app.schemas.auth import (
+    AdminPasswordResetRequest,
+    LoginRequest,
+    PasswordChangeRequest,
+    TokenResponse,
+    UserOut,
+)
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -38,6 +44,22 @@ def login(body: LoginRequest, db: Session = Depends(get_db)) -> TokenResponse:
 @router.get("/me", response_model=UserOut)
 def me(user: User = Depends(get_current_user)) -> User:
     return user
+
+
+
+@router.post("/password", status_code=status.HTTP_204_NO_CONTENT)
+def change_password(
+    body: PasswordChangeRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> None:
+    if not verify_password(body.current_password, user.password_hash):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Current password is incorrect")
+    if body.new_password == body.current_password:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="New password must be different")
+    user.password_hash = hash_password(body.new_password)
+    db.add(user)
+    db.commit()
 
 
 @router.post("/admin/password-reset", status_code=status.HTTP_204_NO_CONTENT)

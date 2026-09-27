@@ -4,31 +4,29 @@ Date: 2026-08-31
 
 ## What it does
 
-Run the CRM as two Compose projects on the same host: **prod** (public invoices and staff work at `https://crm.m2solution.ca`) and **dev** (hot reload, localhost only, SSH port forward). They share the prod Postgres instance and use different databases.
+Run the CRM as two Compose projects (**prod** and **dev**) plus a separate **shared Postgres** stack. Prod is public at `https://crm.m2solution.ca`; dev is localhost + SSH forward.
 
 ## Behavior
 
+### Shared Postgres — `docker compose -f docker-compose.db.yml up -d`
+
+- Project `shared-db`: `db`, `db-replica`, `db-init`.
+- Network `shared-db` (hostname `db`). See [shared-postgres.md](shared-postgres.md).
+- Start **before** CRM stacks.
+
 ### Prod — `docker compose up --build -d` (project `crm`)
 
-- `web` on **`10.50.0.2:8081`** (WireGuard). Host 8080 is Pterodactyl Wings. `api` is not published; nginx proxies `/api/` to `api:8000`.
-- `db` Postgres 16 on `127.0.0.1:5432`. `db-replica` on `127.0.0.1:5433`.
-- `db-init` creates database `${DEV_POSTGRES_DB}` (default `crm_dev`) if missing. Prod API uses `${POSTGRES_DB}` (default `crm`).
-- Cluster files: `${PGDATA_PRIMARY}` (default `/mnt/data_main/m2solution_crm/pgdata`) and `${PGDATA_REPLICA}` (default `/mnt/data_backup/m2solution_crm/pgdata`).
-- `PUBLIC_APP_URL` / `CORS_ORIGINS` default to `https://crm.m2solution.ca`.
-- `PROD_WEB_PUBLISH` default `10.50.0.2:8081`.
-- VPS nginx terminates TLS for `crm.m2solution.ca` and proxies to `10.50.0.2:8081`.
-- Named network `crm-db` so the dev API can reach hostname `db`.
+- `web` on `10.50.0.2:8081`. `api` on `shared-db` only (not published).
+- No Postgres services in this file.
+- File blobs: `${FILES_ROOT}` → `/data/files` on `api`.
 
 ### Dev — `docker compose -f docker-compose.dev.yml up --build -d` (project `crm-dev`)
 
-- Vite on **`127.0.0.1:5173`**, API reload on **`127.0.0.1:8000`**, `VITE_API_PROXY=http://api:8000`.
-- No Postgres service. API uses `crm_dev` on the prod instance (`@db:5432/crm_dev` via external network `crm-db`). Start prod `db` + `db-init` first.
-- `DEV_PUBLIC_APP_URL` / `DEV_CORS_ORIGINS` default to `http://localhost:5173` so prod `.env` URLs are not reused.
-- Reach it with `ssh -L 5173:127.0.0.1:5173`.
+- Vite `127.0.0.1:5173`, API `127.0.0.1:8000`.
+- Uses `crm_dev` on shared `db` via external network `shared-db`.
+- File blobs: `${DEV_FILES_ROOT}`.
 
-Prod `api` waits until `db` is healthy (`pg_isready`). Prod `web` waits until `api` is healthy (`GET /api/health`). Prod `db-replica` waits until `db` is healthy, then `pg_basebackup` if its data dir is empty.
-
-Both stacks may run together. Credentials still come from repo-root `.env`.
+CRM `.env` holds app settings; `postgres.env` holds cluster settings. Both need matching `POSTGRES_USER` / `POSTGRES_PASSWORD` for compose interpolation.
 
 ## API
 
@@ -36,17 +34,15 @@ No new business API. Health: `GET /api/health`.
 
 ## UI
 
-Same app. Prod is the built SPA behind nginx (same origin as `/api`). Dev is Vite. Share links in each stack use that stack’s `PUBLIC_APP_URL`.
+Same app. Prod = built SPA + nginx. Dev = Vite.
 
 ## Files
 
-- `docker-compose.yml` (`name: crm`), `docker-compose.dev.yml` (`name: crm-dev`), `.env.example`
-- `deploy/postgres/replica-entrypoint.sh`, `deploy/postgres/ensure-extra-db.sh`
-- `backend/Dockerfile`, `backend/.dockerignore`
-- `frontend/Dockerfile`, `frontend/nginx.conf`, `frontend/.dockerignore`
-- `backend/app/main.py` (`/api/health`)
-- `frontend/vite.config.ts` (`VITE_API_PROXY`, `host: true`)
+- `docker-compose.db.yml`, `postgres.env.example`
+- `docker-compose.yml`, `docker-compose.dev.yml`, `.env.example`
+- `deploy/postgres/` scripts
+- `backend/Dockerfile`, `frontend/Dockerfile`, `frontend/nginx.conf`
 
 ## Follow-ups / out of scope
 
-SQLite volume `crm-data` is no longer used. Replica/failover is [backups.md](backups.md) (whole instance, both databases).
+Replica/failover: [backups.md](backups.md). File blobs are not on the replica disk.

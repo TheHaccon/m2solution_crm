@@ -10,7 +10,7 @@ Staff record internal notes about meetings with a client (date, attendees, markd
 
 - Always linked to a `client_id` (and thus to that client's team).
 - List is newest `scheduled_at` first; can filter `?client_id=`. Requires `X-Team-Id`.
-- Detail renders Discord-style markdown (headings, lists, **bold**, `code`, fenced blocks). See [markdown.md](markdown.md).
+- Detail renders markdown (headings, lists, **bold**, `code`, fenced blocks). See [markdown.md](markdown.md).
 - Shown on the client detail page next to invoices.
 
 ## API
