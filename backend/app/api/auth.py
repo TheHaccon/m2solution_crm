@@ -1,3 +1,4 @@
+import logging
 from urllib.parse import urlencode
 
 import httpx
@@ -26,11 +27,12 @@ from app.schemas.auth import (
 )
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+logger = logging.getLogger(__name__)
 
 ADMIN_EMAIL = "admin@m2solution.com"
 GOOGLE_AUTHORIZE_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
-GOOGLE_USERINFO_URL = "https://openidconnect.googleapis.com/userinfo"
+GOOGLE_USERINFO_URL = "https://openidconnect.googleapis.com/v1/userinfo"
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -80,12 +82,19 @@ def admin_password_reset(
     db.commit()
 
 
-def _google_login_redirect(*, token: str | None = None, error: bool = False) -> RedirectResponse:
+def _google_login_redirect(
+    *,
+    token: str | None = None,
+    error: bool = False,
+    reason: str | None = None,
+) -> RedirectResponse:
     base = settings.public_app_url.rstrip("/")
     if token:
         return RedirectResponse(url=f"{base}/login?google_token={token}", status_code=status.HTTP_302_FOUND)
     if error:
-        return RedirectResponse(url=f"{base}/login?google_error=1", status_code=status.HTTP_302_FOUND)
+        query = urlencode({"google_error": "1", **({"google_reason": reason} if reason else {})})
+        logger.warning("google sign-in failed: %s", reason or "unspecified")
+        return RedirectResponse(url=f"{base}/login?{query}", status_code=status.HTTP_302_FOUND)
     return RedirectResponse(url=f"{base}/login", status_code=status.HTTP_302_FOUND)
 
 
@@ -119,9 +128,9 @@ def google_callback(
     db: Session = Depends(get_db),
 ) -> RedirectResponse:
     if not settings.google_oauth_configured:
-        return _google_login_redirect(error=True)
+        return _google_login_redirect(error=True, reason="not_configured")
     if not code or not state or not verify_google_oauth_state(state):
-        return _google_login_redirect(error=True)
+        return _google_login_redirect(error=True, reason="bad_state")
 
     try:
         with httpx.Client(timeout=15.0) as client:
@@ -136,28 +145,36 @@ def google_callback(
                 },
             )
             if token_res.status_code != 200:
-                return _google_login_redirect(error=True)
+                detail = ""
+                try:
+                    detail = str(token_res.json().get("error") or "")
+                except ValueError:
+                    detail = ""
+                return _google_login_redirect(error=True, reason=f"token_{detail or token_res.status_code}")
             token_payload = token_res.json()
             access_token = token_payload.get("access_token")
             if not access_token:
-                return _google_login_redirect(error=True)
+                return _google_login_redirect(error=True, reason="no_access_token")
             userinfo_res = client.get(
                 GOOGLE_USERINFO_URL,
                 headers={"Authorization": f"Bearer {access_token}"},
             )
             if userinfo_res.status_code != 200:
-                return _google_login_redirect(error=True)
+                return _google_login_redirect(error=True, reason="userinfo")
             userinfo = userinfo_res.json()
     except httpx.HTTPError:
-        return _google_login_redirect(error=True)
+        return _google_login_redirect(error=True, reason="network")
 
     email = userinfo.get("email")
     email_verified = userinfo.get("email_verified")
-    if not email or email_verified is not True:
-        return _google_login_redirect(error=True)
+    verified = email_verified is True or email_verified == "true"
+    if not email or not verified:
+        return _google_login_redirect(error=True, reason="unverified")
 
-    user = db.scalar(select(User).where(User.email == str(email).lower()))
+    normalized = str(email).strip().lower()
+    user = db.scalar(select(User).where(User.email == normalized))
     if user is None:
-        return _google_login_redirect(error=True)
+        logger.warning("google sign-in email not in staff list: %s", normalized)
+        return _google_login_redirect(error=True, reason="not_staff")
 
     return _google_login_redirect(token=create_access_token(str(user.id)))

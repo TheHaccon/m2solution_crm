@@ -40,6 +40,7 @@ Staff client, meeting, and dashboard routes require header **`X-Team-Id`**. Invo
 - `backend/app/api/teams.py`
 - `backend/app/core/deps.py`
 - `backend/alembic/versions/002_teams.py`
+- `backend/alembic/versions/005_repair_invoice_client_columns.py` — re-applies missing `clients.team_id` / `invoices.created_by_id` when a DB was stamped ahead past `002_teams`
 - `frontend/src/team/TeamContext.tsx`
 - `frontend/src/pages/TeamsPage.tsx`
 - `frontend/src/layouts/StaffLayout.tsx`

@@ -38,7 +38,7 @@ Frontend calls `/api/...`. In Vite (dev Compose or local) this is proxied to the
 - `meetings` — title, datetime, attendees, markdown body, linked to a client (team via that client)
 - `file_nodes` — folder/file tree metadata (`space` team or personal); blobs on disk at `FILES_ROOT/<uuid>`, not in Postgres
 
-Tables are created on API startup (`Base.metadata.create_all`). Alembic migrations `001_initial`, `002_teams`, `003_files`, and `004_expenses` match this schema. On an existing database, run those migrations — `create_all` creates **new tables** but does not add columns.
+Tables are created on API startup (`Base.metadata.create_all`). Alembic migrations `001_initial`, `002_teams`, `003_files`, `004_expenses`, and `005_repair_invoice_client_columns` match this schema. On an existing database, run those migrations — `create_all` creates **new tables** but does not add columns. If a database was stamped ahead to `004_expenses` without the `002_teams` column alters (`clients.team_id`, `invoices.created_by_id`), apply `005_repair_invoice_client_columns` via `alembic upgrade head` rather than stamping backward.
 
 ## Auth and access
 

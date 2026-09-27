@@ -23,11 +23,23 @@ export function LoginPage() {
     const next = new URLSearchParams(searchParams)
     next.delete('google_token')
     next.delete('google_error')
+    next.delete('google_reason')
     setSearchParams(next, { replace: true })
 
     if (googleError) {
       setGooglePending(false)
-      setError('Google sign-in failed')
+      const reason = searchParams.get('google_reason')
+      if (reason === 'not_staff') {
+        setError('This Google account is not a staff user')
+      } else if (reason === 'unverified') {
+        setError('Google did not confirm this email')
+      } else if (reason?.startsWith('token_')) {
+        setError('Google rejected the sign-in code')
+      } else if (reason === 'userinfo') {
+        setError('Could not read the Google account email')
+      } else {
+        setError('Google sign-in failed')
+      }
       return
     }
 
