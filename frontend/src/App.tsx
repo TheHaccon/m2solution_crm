@@ -13,6 +13,7 @@ import { MeetingDetailPage } from './pages/MeetingDetailPage'
 import { MeetingFormPage } from './pages/MeetingFormPage'
 import { MeetingsListPage } from './pages/MeetingsListPage'
 import { PublicInvoicePage } from './pages/PublicInvoicePage'
+import { TeamsPage } from './pages/TeamsPage'
 
 export default function App() {
   return (
@@ -34,6 +35,7 @@ export default function App() {
         <Route path="/meetings/new" element={<MeetingFormPage />} />
         <Route path="/meetings/:id" element={<MeetingDetailPage />} />
         <Route path="/meetings/:id/edit" element={<MeetingFormPage />} />
+        <Route path="/teams" element={<TeamsPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

@@ -22,7 +22,7 @@ export function MeetingsListPage() {
           <h1 className="font-serif text-3xl">Meetings</h1>
           <p className="mt-1 text-ink/55">Internal notes from client conversations. Not shared on invoice links.</p>
         </div>
-        <Link to="/meetings/new" className="rounded-lg bg-ink px-4 py-2 text-sm font-medium text-cream hover:bg-ink-2">
+        <Link to="/meetings/new" className="rounded-lg bg-navy px-4 py-2 text-sm font-medium text-cream hover:bg-navy-2">
           New meeting
         </Link>
       </div>

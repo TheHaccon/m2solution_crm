@@ -173,7 +173,7 @@ export function InvoiceFormPage() {
         </label>
         {error ? <p className="text-sm text-rose-700">{error}</p> : null}
         <div className="flex gap-3">
-          <button type="submit" disabled={saving} className="rounded-lg bg-ink px-4 py-2 text-sm font-medium text-cream disabled:opacity-60">
+          <button type="submit" disabled={saving} className="rounded-lg bg-navy px-4 py-2 text-sm font-medium text-cream disabled:opacity-60">
             {saving ? 'Saving…' : 'Save draft'}
           </button>
           <Link to={editing ? `/invoices/${id}` : '/invoices'} className="rounded-lg px-4 py-2 text-sm text-ink/60">

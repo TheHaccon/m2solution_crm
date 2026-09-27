@@ -3,18 +3,8 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { api } from '../api'
 import { formatDateTime } from '../lib/format'
+import { MarkdownBody } from '../markdown/MarkdownBody'
 import type { Meeting } from '../types'
-
-function renderNotes(text: string) {
-  return text.split('\n').map((line, i) => {
-    if (line.startsWith('### ')) return <h3 key={i} className="mt-4 font-medium">{line.slice(4)}</h3>
-    if (line.startsWith('## ')) return <h2 key={i} className="mt-5 font-serif text-xl">{line.slice(3)}</h2>
-    if (line.startsWith('# ')) return <h1 key={i} className="mt-6 font-serif text-2xl">{line.slice(2)}</h1>
-    if (line.startsWith('- ')) return <li key={i} className="ml-5 list-disc">{line.slice(2)}</li>
-    if (line.trim() === '') return <div key={i} className="h-2" />
-    return <p key={i}>{line}</p>
-  })
-}
 
 export function MeetingDetailPage() {
   const { id } = useParams()
@@ -71,8 +61,8 @@ export function MeetingDetailPage() {
           </button>
         </div>
       </div>
-      <article className="mt-6 space-y-1 rounded-2xl bg-paper p-6 text-sm leading-relaxed shadow-sm">
-        {meeting.body ? renderNotes(meeting.body) : <p className="text-ink/45">No notes recorded.</p>}
+      <article className="mt-6 rounded-2xl bg-paper p-6 text-sm leading-relaxed shadow-sm">
+        {meeting.body ? <MarkdownBody text={meeting.body} /> : <p className="text-ink/45">No notes recorded.</p>}
       </article>
     </div>
   )

@@ -13,6 +13,7 @@ M2 Solution CRM is an internal tool to manage **clients**, **invoices**, and **m
 - Staff **mark paid** by hand. There is **no** payment processor (no Stripe, PayPal, etc.).
 - Opening the public link increments a **view count** (rapid refreshes from the same browser are ignored).
 - Meeting notes are **staff-only** and never appear on the public invoice.
+- Clients and meetings are scoped to the **active team**. Invoices belong to the staff member who created them.
 
 ## Out of scope (v1)
 
@@ -20,4 +21,4 @@ M2 Solution CRM is an internal tool to manage **clients**, **invoices**, and **m
 - Emailing invoices from the app (copy the link yourself)
 - Estimates, recurring invoices, tax, multi-currency, inventory
 - File attachments
-- Multi-company / multi-tenant
+- Multi-company / separate tenants (teams share one company; they are not separate CRMs)

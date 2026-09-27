@@ -10,25 +10,38 @@ from app.api.dashboard import router as dashboard_router
 from app.api.invoices import router as invoices_router
 from app.api.meetings import router as meetings_router
 from app.api.public import router as public_router
+from app.api.teams import router as teams_router
 from app.core.config import settings
 from app.core.database import Base, SessionLocal, engine
 from app.core.security import hash_password
-from app.models import Client, Invoice, InvoiceLineItem, InvoiceView, Meeting, User  # noqa: F401
+from app.models import Client, Invoice, InvoiceLineItem, InvoiceView, Meeting, Team, TeamMember, User  # noqa: F401
+
+DEFAULT_TEAM_NAME = "M2 Solution"
 
 
 def seed_staff() -> None:
     db = SessionLocal()
     try:
-        existing = db.scalar(select(User).where(User.email == settings.seed_email.lower()))
-        if existing is None:
-            db.add(
-                User(
-                    email=settings.seed_email.lower(),
-                    password_hash=hash_password(settings.seed_password),
-                    full_name="Admin",
-                )
+        user = db.scalar(select(User).where(User.email == settings.seed_email.lower()))
+        if user is None:
+            user = User(
+                email=settings.seed_email.lower(),
+                password_hash=hash_password(settings.seed_password),
+                full_name="Admin",
             )
-            db.commit()
+            db.add(user)
+            db.flush()
+        team = db.scalar(select(Team).where(Team.name == DEFAULT_TEAM_NAME).order_by(Team.id))
+        if team is None:
+            team = Team(name=DEFAULT_TEAM_NAME)
+            db.add(team)
+            db.flush()
+        membership = db.scalar(
+            select(TeamMember).where(TeamMember.team_id == team.id, TeamMember.user_id == user.id)
+        )
+        if membership is None:
+            db.add(TeamMember(team_id=team.id, user_id=user.id))
+        db.commit()
     finally:
         db.close()
 
@@ -49,6 +62,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(auth_router)
+app.include_router(teams_router)
 app.include_router(clients_router)
 app.include_router(invoices_router)
 app.include_router(meetings_router)

@@ -21,6 +21,7 @@ class Invoice(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     client_id: Mapped[int] = mapped_column(ForeignKey("clients.id", ondelete="CASCADE"), index=True)
+    created_by_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"), index=True)
     number: Mapped[str] = mapped_column(String(32), unique=True, index=True)
     status: Mapped[str] = mapped_column(String(16), default=InvoiceStatus.draft.value, index=True)
     issue_date: Mapped[date] = mapped_column(Date)
@@ -37,6 +38,7 @@ class Invoice(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
 
     client: Mapped["Client"] = relationship(back_populates="invoices")
+    created_by: Mapped["User"] = relationship()
     line_items: Mapped[list["InvoiceLineItem"]] = relationship(
         back_populates="invoice", cascade="all, delete-orphan"
     )

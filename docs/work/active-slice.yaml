@@ -1,0 +1,24 @@
+version: 2
+feature_slug: admin-password-reset
+delivery_mode: batch
+phase: pr_open
+branch: feature/admin-password-reset
+input_doc: docs/input/2026-09-27-admin-password-reset.md
+delivery_report: docs/delivery/feature-admin-password-reset.md
+issues:
+  - number: 1
+    title: "[auth] Let admin@m2solution.com reset a staff password"
+    url: "https://github.com/TheHaccon/m2solution_crm/issues/1"
+pr:
+  number: 2
+  url: "https://github.com/TheHaccon/m2solution_crm/pull/2"
+  state: open
+gates:
+  gate_1:
+    approved_at: "2026-09-27T18:17:00-04:00"
+    user_quote: "yes"
+  gate_2:
+    approved_at: "2026-09-27T14:21:00-04:00"
+    user_quote: "yes"
+updated_by: documenter
+updated_at: "2026-09-27T18:37:10Z"

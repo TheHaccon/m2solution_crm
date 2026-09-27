@@ -4,6 +4,22 @@ export type User = {
   full_name: string
 }
 
+export type TeamSummary = {
+  id: number
+  name: string
+  created_at: string
+}
+
+export type TeamMember = {
+  user_id: number
+  email: string
+  full_name: string
+}
+
+export type TeamDetail = TeamSummary & {
+  members: TeamMember[]
+}
+
 export type Client = {
   id: number
   name: string

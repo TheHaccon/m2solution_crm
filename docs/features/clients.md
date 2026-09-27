@@ -4,24 +4,24 @@ Date: 2026-08-31
 
 ## What it does
 
-Staff CRUD for companies/people you bill and meet with.
+Staff CRUD for companies/people you bill and meet with. Records belong to the **active team** and are shared with every member.
 
 ## Behavior
 
-- List with optional search on name/email (`?q=`).
-- Detail page shows contact info, invoices, and meetings.
-- Delete removes the client and cascaded invoices/meetings.
+- List with optional search on name/email (`?q=`). Scoped to `X-Team-Id`.
+- Detail page shows contact info, **your** invoices, and team meetings. Internal notes render as markdown ([markdown.md](markdown.md)).
+- Delete removes the client and cascaded meetings plus **your** invoices. Blocked (409) if a teammate still has invoices for this client.
 - Invoice and meeting create can be started from the client (`?clientId=`).
 
 ## API
 
 | Method | Path | Auth | Notes |
 | ------ | ---- | ---- | ----- |
-| GET | `/api/clients` | staff | Optional `q` |
-| POST | `/api/clients` | staff | |
-| GET | `/api/clients/{id}` | staff | |
+| GET | `/api/clients` | staff | Optional `q`; requires `X-Team-Id` |
+| POST | `/api/clients` | staff | Assigns `team_id` from header |
+| GET | `/api/clients/{id}` | staff | 404 if other team |
 | PATCH | `/api/clients/{id}` | staff | |
-| DELETE | `/api/clients/{id}` | staff | 204 |
+| DELETE | `/api/clients/{id}` | staff | 204; 409 if teammate invoices |
 
 ## UI
 

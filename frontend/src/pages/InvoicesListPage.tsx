@@ -25,9 +25,9 @@ export function InvoicesListPage() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-serif text-3xl">Invoices</h1>
-          <p className="mt-1 text-ink/55">Create, send a share link, mark paid. No in-app payments.</p>
+          <p className="mt-1 text-ink/55">Your invoices only — teammates cannot see them. Send a share link, mark paid.</p>
         </div>
-        <Link to="/invoices/new" className="rounded-lg bg-ink px-4 py-2 text-sm font-medium text-cream hover:bg-ink-2">
+        <Link to="/invoices/new" className="rounded-lg bg-navy px-4 py-2 text-sm font-medium text-cream hover:bg-navy-2">
           New invoice
         </Link>
       </div>
@@ -37,7 +37,7 @@ export function InvoicesListPage() {
             key={f || 'all'}
             type="button"
             onClick={() => setStatus(f)}
-            className={`rounded-full px-3 py-1 text-sm ${status === f ? 'bg-ink text-cream' : 'bg-paper text-ink/70'}`}
+            className={`rounded-full px-3 py-1 text-sm ${status === f ? 'bg-navy text-cream' : 'bg-paper text-ink/70'}`}
           >
             {f || 'all'}
           </button>
@@ -65,7 +65,7 @@ export function InvoicesListPage() {
               </tr>
             ) : null}
             {invoices.map((inv) => (
-              <tr key={inv.id} className="border-t border-ink/8 hover:bg-cream/60">
+              <tr key={inv.id} className="border-t border-ink/8 hover:bg-ink/5">
                 <td className="px-4 py-3">
                   <Link to={`/invoices/${inv.id}`} className="font-medium hover:underline">
                     {inv.number}

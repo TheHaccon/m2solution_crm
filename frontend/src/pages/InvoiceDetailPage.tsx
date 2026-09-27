@@ -84,7 +84,7 @@ export function InvoiceDetailPage() {
         <div className="no-print flex flex-wrap gap-2">
           {invoice.status === 'draft' ? (
             <>
-              <button type="button" disabled={busy} onClick={() => action('send')} className="rounded-lg bg-ink px-3 py-2 text-sm font-medium text-cream">
+              <button type="button" disabled={busy} onClick={() => action('send')} className="rounded-lg bg-navy px-3 py-2 text-sm font-medium text-cream">
                 Send (create link)
               </button>
               <Link to={`/invoices/${invoice.id}/edit`} className="rounded-lg border border-ink/15 bg-paper px-3 py-2 text-sm">
@@ -97,7 +97,7 @@ export function InvoiceDetailPage() {
           ) : null}
           {invoice.status === 'sent' ? (
             <>
-              <button type="button" disabled={busy} onClick={() => action('mark-paid')} className="rounded-lg bg-ink px-3 py-2 text-sm font-medium text-cream">
+              <button type="button" disabled={busy} onClick={() => action('mark-paid')} className="rounded-lg bg-navy px-3 py-2 text-sm font-medium text-cream">
                 Mark paid
               </button>
               <button type="button" disabled={busy} onClick={() => action('void')} className="rounded-lg border border-ink/15 bg-paper px-3 py-2 text-sm">
@@ -112,7 +112,7 @@ export function InvoiceDetailPage() {
       {invoice.share_url && invoice.status !== 'void' ? (
         <div className="no-print mt-4 flex flex-wrap items-center gap-3 rounded-2xl bg-paper p-4 shadow-sm">
           <code className="min-w-0 flex-1 truncate text-sm">{invoice.share_url}</code>
-          <button type="button" onClick={copyLink} className="rounded-lg bg-ink px-3 py-1.5 text-sm text-cream">
+          <button type="button" onClick={copyLink} className="rounded-lg bg-navy px-3 py-1.5 text-sm text-cream">
             {copied ? 'Copied' : 'Copy link'}
           </button>
           <button type="button" disabled={busy} onClick={() => action('rotate-link')} className="text-sm text-ink/50 hover:text-ink">
