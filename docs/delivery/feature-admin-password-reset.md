@@ -1,13 +1,13 @@
 # Delivery: Admin-only staff password reset
 
 ## Status
-ship-prep
+pr-open
 
 ## Links
 - Issue(s): #1 — https://github.com/TheHaccon/m2solution_crm/issues/1
 - Input doc: docs/input/2026-09-27-admin-password-reset.md
 - Branch: `feature/admin-password-reset`
-- PR: **pending**
+- PR: https://github.com/TheHaccon/m2solution_crm/pull/2
 
 ## Summary
 Signed-in `admin@m2solution.com` can set a new password for any staff account (including their own) from account settings. Authorization is enforced on the API by that literal email; no email is sent and the seeder is unchanged. Existing JWTs remain valid until expiry.
@@ -95,8 +95,8 @@ Closes #1
 
 ## Ship checklist (awaiting user approval)
 - [x] Push branch `feature/admin-password-reset` to origin
-- [ ] Mark PR ready for review (opened ready unless noted otherwise)
-- [ ] Merge PR into `main` (`Closes #1`)
+- [x] Open PR #2 ready for review — https://github.com/TheHaccon/m2solution_crm/pull/2
+- [ ] Merge PR #2 into `main` (`Closes #1`)
 - [ ] Archive `docs/work/active-slice.yaml` after merge
 - [ ] Restore or rotate `crm_dev` admin password if still `admin-jwt-1`; remove leftover `apr-other@m2solution.com` if undesired
 
