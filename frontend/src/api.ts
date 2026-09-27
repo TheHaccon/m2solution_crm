@@ -34,29 +34,51 @@ function detailMessage(detail: unknown, fallback: string): string {
   return fallback
 }
 
-export async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
+function staffHeaders(path: string, init?: HeadersInit): Headers {
+  const headers = new Headers(init)
   const token = getToken()
-  const headers = new Headers(options.headers)
-  if (!headers.has('Content-Type') && options.body) {
-    headers.set('Content-Type', 'application/json')
-  }
   if (token) headers.set('Authorization', `Bearer ${token}`)
   const teamId = getStoredTeamId()
   if (teamId !== null && !path.startsWith('/api/auth/') && !path.startsWith('/api/public/')) {
     headers.set('X-Team-Id', String(teamId))
   }
+  return headers
+}
 
-  const res = await fetch(path, { ...options, headers, credentials: 'include' })
+async function parseError(res: Response, path: string): Promise<never> {
   if (res.status === 401 && !path.startsWith('/api/auth/login')) {
     clearToken()
     if (!window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/i/')) {
       window.location.href = '/login'
     }
   }
-  if (!res.ok) {
-    const err = (await res.json().catch(() => ({}))) as { detail?: unknown }
-    throw new Error(detailMessage(err.detail, res.statusText))
+  const err = (await res.json().catch(() => ({}))) as { detail?: unknown }
+  throw new Error(detailMessage(err.detail, res.statusText))
+}
+
+export async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const headers = staffHeaders(path, options.headers)
+  if (!headers.has('Content-Type') && options.body) {
+    headers.set('Content-Type', 'application/json')
   }
+
+  const res = await fetch(path, { ...options, headers, credentials: 'include' })
+  if (!res.ok) await parseError(res, path)
   if (res.status === 204) return undefined as T
   return res.json() as Promise<T>
+}
+
+export async function apiUpload<T>(path: string, form: FormData): Promise<T> {
+  const headers = staffHeaders(path)
+  const res = await fetch(path, { method: 'POST', body: form, headers, credentials: 'include' })
+  if (!res.ok) await parseError(res, path)
+  if (res.status === 204) return undefined as T
+  return res.json() as Promise<T>
+}
+
+export async function apiBytes(path: string): Promise<{ blob: Blob; contentType: string }> {
+  const headers = staffHeaders(path)
+  const res = await fetch(path, { headers, credentials: 'include' })
+  if (!res.ok) await parseError(res, path)
+  return { blob: await res.blob(), contentType: res.headers.get('content-type') || '' }
 }

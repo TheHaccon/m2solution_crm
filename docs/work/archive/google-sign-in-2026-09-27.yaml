@@ -1,0 +1,33 @@
+version: 2
+repo: TheHaccon/m2solution_crm
+feature_slug: google-sign-in
+input_doc: docs/input/2026-09-27-google-sign-in.md
+delivery_mode: batch
+phase: merged
+gates:
+  gate_1:
+    approved_at: "2026-09-27T15:05:00-04:00"
+    user_quote: "create"
+  gate_2:
+    approved_at: "2026-09-27T15:08:00-04:00"
+    user_quote: "yes"
+issues:
+  - number: 3
+    url: https://github.com/TheHaccon/m2solution_crm/issues/3
+    title: "[auth] Issue staff JWT after Google email match"
+  - number: 4
+    url: https://github.com/TheHaccon/m2solution_crm/issues/4
+    title: "[auth] Add Sign in with Google on /login"
+  - number: 5
+    url: https://github.com/TheHaccon/m2solution_crm/issues/5
+    title: "[ops] Document Google OAuth env and operator setup"
+branch: feature/google-sign-in
+delivery_report: docs/delivery/feature-google-sign-in.md
+pr:
+  number: 6
+  url: https://github.com/TheHaccon/m2solution_crm/pull/6
+  state: merged
+labels:
+  managed: agent-managed
+updated_at: "2026-09-27T15:33:00-04:00"
+updated_by: orchestrator
