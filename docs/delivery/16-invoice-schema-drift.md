@@ -104,10 +104,10 @@ Fixes #16
 
 ## Ship checklist (awaiting user approval)
 - [x] Push branch `fix/invoice-schema-drift` to origin
-- [ ] Mark PR ready for review (opened ready)
+- [x] Open PR #18 ready for review
 - [ ] Review PR diff and Tester notes
 - [ ] Ops: live `crm` already at `005_repair_inv_client_cols` — no second upgrade needed on that volume; rebuild API from merged main so the short revision file is what images ship
-- [ ] Explicit merge approval — merge PR into `main` (`Fixes #16`)
+- [ ] Explicit merge approval — merge PR #18 into `main` (`Fixes #16`)
 - [ ] Archive `docs/work/active-slice.yaml` after merge
 
 Do **not** merge until the user approves this checklist.
