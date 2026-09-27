@@ -3,7 +3,8 @@ repo: TheHaccon/m2solution_crm
 feature_slug: files-expenses-accounting
 input_doc: docs/input/2026-09-27-files-expenses-accounting.md
 delivery_mode: batch
-phase: implementing
+phase: pr_open
+delivery_report: docs/delivery/feature-files-expenses-accounting.md
 gates:
   gate_1:
     approved_at: "2026-09-27T15:42:00-04:00"
@@ -34,7 +35,11 @@ issues:
     url: https://github.com/TheHaccon/m2solution_crm/issues/13
     title: "[ops] Run CRM Postgres as the shared host cluster"
 branch: feature/files-expenses-accounting
+pr:
+  number: 14
+  url: https://github.com/TheHaccon/m2solution_crm/pull/14
+  state: open
 labels:
   managed: agent-managed
-updated_at: "2026-09-27T16:02:00-04:00"
-updated_by: coder
+updated_at: "2026-09-27T16:05:00-04:00"
+updated_by: documenter
