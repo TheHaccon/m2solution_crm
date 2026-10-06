@@ -1,7 +1,7 @@
 # Delivery: Optional note when stopping a timer
 
 ## Status
-pr-open
+merged
 
 ## Links
 - Issue(s): #24 — https://github.com/TheHaccon/m2solution_crm/issues/24
