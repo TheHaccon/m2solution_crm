@@ -35,4 +35,5 @@ Internal CRM for billing and client meeting notes. Staff sign in. Clients do **n
 - [run.md](run.md) — local and Docker
 - [delivery/16-invoice-schema-drift.md](delivery/16-invoice-schema-drift.md) — delivery report for invoice/client schema repair (#16)
 - [delivery/feature-project-time-tracking.md](delivery/feature-project-time-tracking.md) — delivery report for team projects and personal timers (#19–#22)
+- [delivery/24-timer-stop-note.md](delivery/24-timer-stop-note.md) — optional note when staff stop a timer (#24)
 
