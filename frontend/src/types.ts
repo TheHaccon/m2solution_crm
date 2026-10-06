@@ -150,3 +150,33 @@ export type LineItemInput = {
   quantity: number
   unit_price: number
 }
+
+export type TimeSession = {
+  id: number
+  project_id: number
+  status: 'running' | 'paused'
+  accumulated_seconds: number
+  segment_started_at: string | null
+  server_now: string
+}
+
+export type Project = {
+  id: number
+  name: string
+  created_at: string
+  updated_at: string
+  my_finished_seconds: number
+  server_now: string
+  server_today: string
+  my_session: TimeSession | null
+}
+
+export type TimeEntry = {
+  id: number
+  project_id: number
+  source: 'manual' | 'timer'
+  work_date: string
+  duration_seconds: number
+  note: string | null
+  ended_at: string
+}

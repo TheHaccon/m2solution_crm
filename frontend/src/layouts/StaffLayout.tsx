@@ -11,6 +11,7 @@ const ADMIN_EMAIL = 'admin@m2solution.com'
 const links = [
   { to: '/dashboard', label: 'Dashboard' },
   { to: '/clients', label: 'Clients' },
+  { to: '/projects', label: 'Projects' },
   { to: '/invoices', label: 'Invoices' },
   { to: '/expenses', label: 'Expenses' },
   { to: '/accounting', label: 'Accounting' },

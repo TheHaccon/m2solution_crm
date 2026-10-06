@@ -19,6 +19,7 @@ Internal CRM for billing and client meeting notes. Staff sign in. Clients do **n
 | Meeting notes | [features/meetings.md](features/meetings.md) |
 | Markdown notes | [features/markdown.md](features/markdown.md) |
 | Teams | [features/teams.md](features/teams.md) |
+| Project time tracking | [features/project-time-tracking.md](features/project-time-tracking.md) |
 | Dark mode | [features/dark-mode.md](features/dark-mode.md) |
 | File manager | [features/file-manager.md](features/file-manager.md) |
 | Staff dashboard | [features/dashboard.md](features/dashboard.md) |
@@ -33,4 +34,5 @@ Internal CRM for billing and client meeting notes. Staff sign in. Clients do **n
 - [architecture.md](architecture.md) — stack, folders, data model, env
 - [run.md](run.md) — local and Docker
 - [delivery/16-invoice-schema-drift.md](delivery/16-invoice-schema-drift.md) — delivery report for invoice/client schema repair (#16)
+- [delivery/feature-project-time-tracking.md](delivery/feature-project-time-tracking.md) — delivery report for team projects and personal timers (#19–#22)
 
