@@ -12,12 +12,13 @@ from app.api.expenses import router as expenses_router
 from app.api.files import router as files_router
 from app.api.invoices import router as invoices_router
 from app.api.meetings import router as meetings_router
+from app.api.projects import router as projects_router
 from app.api.public import router as public_router
 from app.api.teams import router as teams_router
 from app.core.config import seed_display_name, settings
 from app.core.database import Base, SessionLocal, engine
 from app.core.security import hash_password
-from app.models import Client, Expense, ExpenseCategory, ExpenseRecurrence, FileNode, Invoice, InvoiceLineItem, InvoiceView, Meeting, Team, TeamMember, User  # noqa: F401
+from app.models import Client, Expense, ExpenseCategory, ExpenseRecurrence, FileNode, Invoice, InvoiceLineItem, InvoiceView, Meeting, Project, Team, TeamMember, TimeEntry, User  # noqa: F401
 
 DEFAULT_TEAM_NAME = "M2 Solution"
 
@@ -70,6 +71,7 @@ app.include_router(teams_router)
 app.include_router(clients_router)
 app.include_router(invoices_router)
 app.include_router(meetings_router)
+app.include_router(projects_router)
 app.include_router(dashboard_router)
 app.include_router(files_router)
 app.include_router(expenses_router)

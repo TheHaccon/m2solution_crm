@@ -15,6 +15,8 @@ import { LoginPage } from './pages/LoginPage'
 import { MeetingDetailPage } from './pages/MeetingDetailPage'
 import { MeetingFormPage } from './pages/MeetingFormPage'
 import { MeetingsListPage } from './pages/MeetingsListPage'
+import { ProjectDetailPage } from './pages/ProjectDetailPage'
+import { ProjectsListPage } from './pages/ProjectsListPage'
 import { PublicInvoicePage } from './pages/PublicInvoicePage'
 import { TeamsPage } from './pages/TeamsPage'
 
@@ -30,6 +32,8 @@ export default function App() {
         <Route path="/clients/new" element={<ClientFormPage />} />
         <Route path="/clients/:id" element={<ClientDetailPage />} />
         <Route path="/clients/:id/edit" element={<ClientFormPage />} />
+        <Route path="/projects" element={<ProjectsListPage />} />
+        <Route path="/projects/:id" element={<ProjectDetailPage />} />
         <Route path="/invoices" element={<InvoicesListPage />} />
         <Route path="/invoices/new" element={<InvoiceFormPage />} />
         <Route path="/invoices/:id" element={<InvoiceDetailPage />} />

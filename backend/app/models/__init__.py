@@ -3,6 +3,7 @@ from app.models.expense import Expense, ExpenseCategory, ExpenseRecurrence
 from app.models.file import FileNode
 from app.models.invoice import Invoice, InvoiceLineItem, InvoiceStatus, InvoiceView
 from app.models.meeting import Meeting
+from app.models.project import Project, TimeEntry
 from app.models.team import Team, TeamMember
 from app.models.user import User
 
@@ -17,7 +18,9 @@ __all__ = [
     "InvoiceStatus",
     "InvoiceView",
     "Meeting",
+    "Project",
     "Team",
     "TeamMember",
+    "TimeEntry",
     "User",
 ]
