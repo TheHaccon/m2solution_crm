@@ -1,7 +1,7 @@
 # Delivery: Project time tracking
 
 ## Status
-pr-open
+merged
 
 ## Links
 - Issue(s): #19 — https://github.com/TheHaccon/m2solution_crm/issues/19 · #20 — https://github.com/TheHaccon/m2solution_crm/issues/20 · #21 — https://github.com/TheHaccon/m2solution_crm/issues/21 · #22 — https://github.com/TheHaccon/m2solution_crm/issues/22
