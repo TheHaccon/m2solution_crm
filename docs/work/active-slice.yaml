@@ -1,27 +1,36 @@
 version: 2
 repo: TheHaccon/m2solution_crm
-feature_slug: invoice-schema-drift
-input_doc: docs/input/2026-09-27-invoice-schema-drift.md
-delivery_mode: single
-phase: pr_open
-delivery_report: docs/delivery/16-invoice-schema-drift.md
+feature_slug: project-time-tracking
+input_doc: docs/input/2026-10-06-project-time-tracking.md
+delivery_mode: batch
+phase: implementing
 gates:
   gate_1:
-    approved_at: "2026-09-27T16:32:00-04:00"
-    user_quote: "yes"
+    approved_at: "2026-10-06T12:46:00-04:00"
+    user_quote: "create"
   gate_2:
-    approved_at: "2026-09-27T16:39:00-04:00"
-    user_quote: "yes"
+    approved_at: "2026-10-06T12:53:00-04:00"
+    user_quote: "implement issues"
 issues:
-  - number: 16
-    url: https://github.com/TheHaccon/m2solution_crm/issues/16
-    title: "[database] Repair missing invoice and client columns on live CRM"
-branch: fix/invoice-schema-drift
+  - number: 19
+    url: https://github.com/TheHaccon/m2solution_crm/issues/19
+    title: "[projects] Create, list, and rename team projects"
+  - number: 20
+    url: https://github.com/TheHaccon/m2solution_crm/issues/20
+    title: "[time] Add, list, and delete my own finished entries"
+  - number: 21
+    url: https://github.com/TheHaccon/m2solution_crm/issues/21
+    title: "[time] Start, pause, and stop one server-side timer"
+  - number: 22
+    url: https://github.com/TheHaccon/m2solution_crm/issues/22
+    title: "[projects] Add staff Projects pages with timer and manual add"
+branch: feature/project-time-tracking
 pr:
-  number: 18
-  url: https://github.com/TheHaccon/m2solution_crm/pull/18
-  state: open
+  number: null
+  url: ""
+  state: ""
+delivery_report: docs/delivery/feature-project-time-tracking.md
 labels:
   managed: agent-managed
-updated_at: "2026-09-27T20:46:00Z"
-updated_by: documenter
+updated_at: "2026-10-06T12:53:00-04:00"
+updated_by: orchestrator
