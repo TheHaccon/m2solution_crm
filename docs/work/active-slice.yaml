@@ -1,36 +1,27 @@
 version: 2
 repo: TheHaccon/m2solution_crm
-feature_slug: project-time-tracking
-input_doc: docs/input/2026-10-06-project-time-tracking.md
-delivery_mode: batch
-phase: merged
+feature_slug: timer-stop-note
+input_doc: docs/input/2026-10-06-timer-stop-note.md
+delivery_mode: single
+phase: pr_open
 gates:
   gate_1:
-    approved_at: "2026-10-06T12:46:00-04:00"
+    approved_at: "2026-10-06T14:04:00-04:00"
     user_quote: "create"
   gate_2:
-    approved_at: "2026-10-06T12:53:00-04:00"
-    user_quote: "implement issues"
+    approved_at: "2026-10-06T14:10:00-04:00"
+    user_quote: "one pr"
 issues:
-  - number: 19
-    url: https://github.com/TheHaccon/m2solution_crm/issues/19
-    title: "[projects] Create, list, and rename team projects"
-  - number: 20
-    url: https://github.com/TheHaccon/m2solution_crm/issues/20
-    title: "[time] Add, list, and delete my own finished entries"
-  - number: 21
-    url: https://github.com/TheHaccon/m2solution_crm/issues/21
-    title: "[time] Start, pause, and stop one server-side timer"
-  - number: 22
-    url: https://github.com/TheHaccon/m2solution_crm/issues/22
-    title: "[projects] Add staff Projects pages with timer and manual add"
-branch: feature/project-time-tracking
+  - number: 24
+    url: https://github.com/TheHaccon/m2solution_crm/issues/24
+    title: "[time] Prompt for an optional note when stopping the timer"
+branch: feature/timer-stop-note
 pr:
-  number: 23
-  url: https://github.com/TheHaccon/m2solution_crm/pull/23
-  state: merged
-delivery_report: docs/delivery/feature-project-time-tracking.md
+  number: 25
+  url: https://github.com/TheHaccon/m2solution_crm/pull/25
+  state: open
+delivery_report: docs/delivery/24-timer-stop-note.md
 labels:
   managed: agent-managed
-updated_at: "2026-10-06T13:39:12-04:00"
-updated_by: orchestrator
+updated_at: "2026-10-06T14:28:42-04:00"
+updated_by: documenter

@@ -17,10 +17,21 @@ export function ProjectDetailPage() {
   const [minutes, setMinutes] = useState('')
   const [seconds, setSeconds] = useState('')
   const [note, setNote] = useState('')
+  const [stopNote, setStopNote] = useState('')
+  const [stopOpen, setStopOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const ticking = project?.my_session?.status === 'running'
   const nowMs = useTicker(ticking)
+
+  useEffect(() => {
+    if (!stopOpen) return
+    function onKey(event: KeyboardEvent) {
+      if (event.key === 'Escape') setStopOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [stopOpen])
 
   function apply(nextProject: Project, nextEntries: TimeEntry[]) {
     setProject(nextProject)
@@ -52,12 +63,42 @@ export function ProjectDetailPage() {
     apply(nextProject, nextEntries)
   }
 
-  async function onTimer(action: 'start' | 'pause' | 'stop') {
+  async function onTimer(action: 'start' | 'pause') {
     if (!id) return
     setError(null)
     setSaving(true)
     try {
       await api(`/api/projects/${id}/timer/${action}`, { method: 'POST' })
+      await reload()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Timer action failed')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  function openStop() {
+    setStopNote('')
+    setError(null)
+    setStopOpen(true)
+  }
+
+  function dismissStop() {
+    setStopOpen(false)
+  }
+
+  async function onStop(event: FormEvent) {
+    event.preventDefault()
+    if (!id) return
+    setError(null)
+    setSaving(true)
+    try {
+      await api(`/api/projects/${id}/timer/stop`, {
+        method: 'POST',
+        body: JSON.stringify({ note: stopNote.trim() ? stopNote.trim() : null }),
+      })
+      setStopOpen(false)
+      setStopNote('')
       await reload()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Timer action failed')
@@ -165,7 +206,7 @@ export function ProjectDetailPage() {
           <button
             type="button"
             disabled={saving}
-            onClick={() => void onTimer('stop')}
+            onClick={openStop}
             className="rounded-lg border border-ink/15 bg-paper px-3 py-2 text-sm disabled:opacity-40"
           >
             Stop
@@ -281,6 +322,50 @@ export function ProjectDetailPage() {
           </tbody>
         </table>
       </section>
+      {stopOpen ? (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-navy/50 p-4" onClick={dismissStop}>
+          <form
+            className="w-full max-w-sm rounded-2xl bg-paper p-5 shadow-lg"
+            onClick={(event) => event.stopPropagation()}
+            onSubmit={(event) => void onStop(event)}
+          >
+            <h2 className="font-serif text-xl">Stop timer</h2>
+            {project.my_session ? (
+              <p className="mt-3 text-ink/70">
+                <SessionElapsed session={project.my_session} receivedAt={receivedAt} nowMs={nowMs} />
+              </p>
+            ) : (
+              <p className="mt-3 text-sm text-ink/45">No open session</p>
+            )}
+            <label className="mt-4 block text-sm text-ink/70">
+              Note
+              <input
+                autoFocus
+                className="mt-1 w-full rounded-lg border border-ink/15 bg-paper px-3 py-2 outline-none focus:border-gold"
+                value={stopNote}
+                onChange={(event) => setStopNote(event.target.value)}
+              />
+            </label>
+            {error ? <p className="mt-3 text-rose-700">{error}</p> : null}
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                className="rounded-lg border border-ink/15 bg-paper px-3 py-1.5 text-sm hover:bg-ink/5 disabled:opacity-40"
+                onClick={dismissStop}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="rounded-lg bg-navy px-3 py-1.5 text-sm font-medium text-cream hover:bg-navy-2 disabled:opacity-40"
+              >
+                Stop
+              </button>
+            </div>
+          </form>
+        </div>
+      ) : null}
     </div>
   )
 }

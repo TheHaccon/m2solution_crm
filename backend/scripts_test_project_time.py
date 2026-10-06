@@ -458,6 +458,7 @@ def _run(  # type: ignore[no-untyped-def]
     filed_paused = must(client.post(f"/api/projects/{alpha['id']}/timer/stop", headers=auth_a), 200).json()
     assert set(filed_paused.keys()) == ENTRY_KEYS
     assert filed_paused["source"] == "timer"
+    assert filed_paused["note"] is None
     assert filed_paused["duration_seconds"] == 165
     assert filed_paused["work_date"] == clock.now.date().isoformat()
     assert must(client.get(f"/api/projects/{alpha['id']}/timer", headers=auth_a), 404)
@@ -470,6 +471,7 @@ def _run(  # type: ignore[no-untyped-def]
     assert must(client.get(f"/api/projects/{fresh['id']}", headers=auth_a), 200).json()["my_finished_seconds"] == 0
     stopped = must(client.post(f"/api/projects/{fresh['id']}/timer/stop", headers=auth_a), 200).json()
     assert stopped["source"] == "timer"
+    assert stopped["note"] is None
     assert stopped["duration_seconds"] == 40
     assert must(client.get(f"/api/projects/{fresh['id']}", headers=auth_a), 200).json()["my_finished_seconds"] == 40
 
@@ -564,6 +566,44 @@ def _run(  # type: ignore[no-untyped-def]
     assert user_b_id != user_a_id
     assert alpha_again["name"] == "Alpha"
     assert long_name["name"] == "N" * 255
+
+    # Stop may file an optional note. Missing, blank, and whitespace notes stay null.
+    noted = must(client.post("/api/projects", headers=auth_a, json={"name": "Noted stop"}), 201).json()
+    must(client.post(f"/api/projects/{noted['id']}/timer/start", headers=auth_a), 200)
+    clock.advance(2)
+    with_note = must(
+        client.post(
+            f"/api/projects/{noted['id']}/timer/stop",
+            headers=auth_a,
+            json={"note": "site visit"},
+        ),
+        200,
+    ).json()
+    assert with_note["source"] == "timer"
+    assert with_note["note"] == "site visit"
+    listed = must(client.get(f"/api/projects/{noted['id']}/entries", headers=auth_a), 200).json()
+    assert [row["id"] for row in listed] == [with_note["id"]]
+    assert listed[0]["note"] == "site visit"
+    stored_note = entry_row(with_note["id"])
+    assert stored_note is not None and stored_note.note == "site visit"
+
+    def stop_with(project_name: str, **post_kwargs):  # type: ignore[no-untyped-def]
+        project = must(client.post("/api/projects", headers=auth_a, json={"name": project_name}), 201).json()
+        must(client.post(f"/api/projects/{project['id']}/timer/start", headers=auth_a), 200)
+        clock.advance(1)
+        filed = must(
+            client.post(f"/api/projects/{project['id']}/timer/stop", headers=auth_a, **post_kwargs),
+            200,
+        ).json()
+        assert filed["note"] is None
+        row = entry_row(filed["id"])
+        assert row is not None and row.note is None
+        return filed
+
+    stop_with("Blank stop", json={"note": "  "})
+    stop_with("Null stop", json={"note": None})
+    stop_with("Empty stop", json={})
+    stop_with("No body stop")
 
 
 def _parse_utc(value: str) -> datetime:
