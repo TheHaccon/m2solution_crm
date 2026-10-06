@@ -9,7 +9,15 @@ from app.core.deps import get_current_team, get_current_user
 from app.models.project import Project, TimeEntry
 from app.models.team import Team
 from app.models.user import User
-from app.schemas.project import EntryCreate, ProjectCreate, ProjectOut, ProjectUpdate, SessionOut, TimeEntryOut
+from app.schemas.project import (
+    EntryCreate,
+    ProjectCreate,
+    ProjectOut,
+    ProjectUpdate,
+    SessionOut,
+    TimeEntryOut,
+    TimerStop,
+)
 from app.services.project_time import (
     add_manual_entry,
     begin_timer,
@@ -186,12 +194,14 @@ def pause_timer_route(
 @router.post("/{project_id}/timer/stop", response_model=TimeEntryOut)
 def stop_timer_route(
     project_id: int,
+    body: TimerStop | None = None,
     db: Session = Depends(get_db),
     team: Team = Depends(get_current_team),
     user: User = Depends(get_current_user),
 ) -> TimeEntryOut:
     project = _get_team_project(db, project_id, team)
-    entry = stop_timer(db, user, project)
+    note = body.note if body is not None else None
+    entry = stop_timer(db, user, project, note)
     db.commit()
     db.refresh(entry)
     return entry_out(entry)

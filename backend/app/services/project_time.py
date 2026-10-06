@@ -239,7 +239,7 @@ def pause_timer(db: Session, user: User, project: Project) -> TimeEntry:
     return row
 
 
-def stop_timer(db: Session, user: User, project: Project) -> TimeEntry:
+def stop_timer(db: Session, user: User, project: Project, note: str | None = None) -> TimeEntry:
     row = require_open_session(db, user.id, project.id)
     now = as_utc(utcnow())
     if row.segment_started_at is not None:
@@ -247,4 +247,5 @@ def stop_timer(db: Session, user: User, project: Project) -> TimeEntry:
     row.ended_at = now
     row.segment_started_at = None
     row.work_date = now.date()
+    row.note = note
     return row

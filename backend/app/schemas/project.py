@@ -45,6 +45,10 @@ class EntryCreate(BaseModel):
     note: OptionalNote = None
 
 
+class TimerStop(BaseModel):
+    note: OptionalNote = None
+
+
 class SessionOut(BaseModel):
     id: int
     project_id: int
