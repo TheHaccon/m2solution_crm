@@ -1,13 +1,13 @@
 # Delivery: Project time tracking
 
 ## Status
-ship-prep
+pr-open
 
 ## Links
 - Issue(s): #19 — https://github.com/TheHaccon/m2solution_crm/issues/19 · #20 — https://github.com/TheHaccon/m2solution_crm/issues/20 · #21 — https://github.com/TheHaccon/m2solution_crm/issues/21 · #22 — https://github.com/TheHaccon/m2solution_crm/issues/22
 - Input doc: docs/input/2026-10-06-project-time-tracking.md
 - Branch: `feature/project-time-tracking`
-- PR: **pending**
+- PR: https://github.com/TheHaccon/m2solution_crm/pull/23
 
 ## Summary
 Staff on the active team can create and rename named projects, then log only their own hours. A server-side timer (start, pause, stop) survives reload. Manual add records a finished duration without starting the timer. There is no project delete, no client link, and no team total.

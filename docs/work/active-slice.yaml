@@ -3,7 +3,7 @@ repo: TheHaccon/m2solution_crm
 feature_slug: project-time-tracking
 input_doc: docs/input/2026-10-06-project-time-tracking.md
 delivery_mode: batch
-phase: implementing
+phase: pr_open
 gates:
   gate_1:
     approved_at: "2026-10-06T12:46:00-04:00"
@@ -26,11 +26,11 @@ issues:
     title: "[projects] Add staff Projects pages with timer and manual add"
 branch: feature/project-time-tracking
 pr:
-  number: null
-  url: ""
-  state: ""
+  number: 23
+  url: https://github.com/TheHaccon/m2solution_crm/pull/23
+  state: open
 delivery_report: docs/delivery/feature-project-time-tracking.md
 labels:
   managed: agent-managed
-updated_at: "2026-10-06T12:53:00-04:00"
-updated_by: orchestrator
+updated_at: "2026-10-06T13:32:46-04:00"
+updated_by: documenter
