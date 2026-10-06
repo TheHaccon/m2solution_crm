@@ -37,13 +37,16 @@ Frontend calls `/api/...`. In Vite (dev Compose or local) this is proxied to the
 - `invoice_views` — each counted public open (cookie/viewer id, time, user-agent)
 - `meetings` — title, datetime, attendees, markdown body, linked to a client (team via that client)
 - `file_nodes` — folder/file tree metadata (`space` team or personal); blobs on disk at `FILES_ROOT/<uuid>`, not in Postgres
+- `projects` — team-shared name only (`team_id`, `name`, timestamps). No client. Duplicate names are allowed. This slice has no delete
+- `time_entries` — personal hours (`user_id`, `project_id`, `source` `manual` or `timer`, `work_date`, `duration_seconds`, `segment_started_at`, `ended_at`, optional `note`). A running timer has `segment_started_at` set and `ended_at` null. Partial unique index `uq_time_entries_one_running` allows one running timer per user. Finished totals sum rows with `ended_at` set; the open segment joins `duration_seconds` on pause or stop
 
-Tables are created on API startup (`Base.metadata.create_all`). Alembic migrations `001_initial`, `002_teams`, `003_files`, `004_expenses`, and `005_repair_inv_client_cols` match this schema. On an existing database, run those migrations — `create_all` creates **new tables** but does not add columns. If a database was stamped ahead to `004_expenses` without the `002_teams` column alters (`clients.team_id`, `invoices.created_by_id`), apply `005_repair_inv_client_cols` via `alembic upgrade head` rather than stamping backward.
+Tables are created on API startup (`Base.metadata.create_all`). Alembic migrations `001_initial`, `002_teams`, `003_files`, `004_expenses`, `005_repair_inv_client_cols`, and `006_projects` match this schema. On an existing database, run those migrations — `create_all` creates **new tables** but does not add columns. If a database was stamped ahead to `004_expenses` without the `002_teams` column alters (`clients.team_id`, `invoices.created_by_id`), apply `005_repair_inv_client_cols` via `alembic upgrade head` rather than stamping backward.
 
 ## Auth and access
 
 - Staff APIs require `Authorization: Bearer <jwt>`.
 - Client, meeting, dashboard, and **team file** routes also require **`X-Team-Id`** and membership.
+- Project and time routes (`/api/projects`, nested entries, and the timer) require a staff JWT and **`X-Team-Id`**. Entries and sessions are personal: list, add, and delete return only the current user's rows, and a teammate cannot read or stop another user's session.
 - Invoice, expense, and accounting staff routes ignore the team header and return only rows where `created_by_id` is the current user.
 - Personal files (`/api/files?space=personal`) ignore the team header and return only rows where `owner_id` is the current user.
 - `GET /api/public/invoices/{token}` is unauthenticated. Lookup is by unguessable `public_token`, never by sequential invoice number.
