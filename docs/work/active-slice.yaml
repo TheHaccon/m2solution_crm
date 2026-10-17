@@ -3,7 +3,7 @@ repo: TheHaccon/m2solution_crm
 feature_slug: dev-reseed
 input_doc: docs/input/2026-10-17-dev-reseed.md
 delivery_mode: single
-phase: implementing
+phase: pr_open
 gates:
   gate_1:
     approved_at: "2026-10-17T13:10:00-04:00"
@@ -16,6 +16,11 @@ issues:
     url: https://github.com/TheHaccon/m2solution_crm/issues/26
     title: "[dev] Reseed crm_dev with demo data and seed-data discipline"
 branch: feature/dev-reseed
+pr:
+  number: 27
+  url: https://github.com/TheHaccon/m2solution_crm/pull/27
+  state: open
+delivery_report: docs/delivery/26-dev-reseed.md
 labels:
   managed: agent-managed
 updated_at: "2026-10-17T13:12:00-04:00"
