@@ -1,0 +1,32 @@
+---
+description: Keep crm_dev demo seeds in sync when adding or changing user-facing features
+alwaysApply: true
+---
+
+# Seed development data
+
+When you add or change a **user-facing** feature, API, or staff workflow, update dev demo seeds in the **same change** as the code.
+
+## Required
+
+1. Add or extend `backend/app/seeds/<area>.py` (or a new module) and register the function in `backend/app/seeds/registry.py`.
+2. Document what was added in `docs/features/dev-seeding.md` (what to click, stable tokens if any).
+3. If run/setup changed, update `docs/run.md`.
+
+## Example
+
+New staff page **Widgets** with model `Widget`:
+
+```python
+# backend/app/seeds/demo_widgets.py
+def seed_demo_widgets(db: Session, ctx: DevSeedContext) -> None:
+    db.add(Widget(team_id=ctx.main_team.id, name="Demo widget"))
+```
+
+Register `seed_demo_widgets` in `registry.py` after team/client seeds. Add a bullet under **UI** in `dev-seeding.md`.
+
+## Do not
+
+- Run full reseed against production (`crm`)
+- Ship a feature with empty dev data when the UI needs rows to be testable
+- Rely on startup `seed_staff()` alone for demo content

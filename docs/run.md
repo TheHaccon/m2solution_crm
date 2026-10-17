@@ -55,6 +55,17 @@ docker compose -f docker-compose.dev.yml up --build -d
 - Database: `crm_dev` on the shared instance
 - File blobs: `/mnt/data_main/m2solution_crm/files_dev`
 
+### Reset dev data
+
+Wipes **`crm_dev`** only (refuses `crm`). Truncates app tables, clears dev file blobs, resets seed passwords, and loads demo rows. See [features/dev-seeding.md](features/dev-seeding.md).
+
+```bash
+./scripts/dev-reseed.sh
+# same as: docker compose -f docker-compose.dev.yml exec -T api python -m app.seeds
+```
+
+Optional: `--dry-run` (guard check only), `--no-files` (keep blobs on disk). Sign out in the browser after a reseed so JWTs match the new data.
+
 ## Cutover from embedded Postgres (one-time)
 
 If Postgres still runs inside the old `crm` compose project:

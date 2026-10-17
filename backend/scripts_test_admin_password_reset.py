@@ -1,15 +1,14 @@
-"""Focused checks for POST /api/auth/admin/password-reset (issue #1)."""
+"""Focused checks for POST /api/auth/admin/password-reset."""
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
+from app.core.config import settings
 from app.core.database import SessionLocal
 from app.core.security import hash_password, verify_password
 from app.main import app
 from app.models.user import User
 
-ADMIN_EMAIL = "admin@m2solution.com"
 TARGET_EMAIL = "apr-target@m2solution.com"
-OTHER_EMAIL = "apr-other@m2solution.com"
 
 
 def _ensure_user(db, email: str, password: str, full_name: str) -> tuple[User, str | None]:
@@ -36,54 +35,46 @@ def _auth_headers(client: TestClient, email: str, password: str) -> dict[str, st
 
 
 def main() -> None:
-    admin_previous: str | None = None
-    admin_created = False
+    actor_email = settings.seed_email_list[0]
+    actor_previous: str | None = None
+    actor_created = False
 
     db = SessionLocal()
     try:
-        _, admin_previous = _ensure_user(db, ADMIN_EMAIL, "admin-pass-1", "Admin")
-        admin_created = admin_previous is None
+        _, actor_previous = _ensure_user(db, actor_email, "staff-pass-1", "Seed Actor")
+        actor_created = actor_previous is None
         _ensure_user(db, TARGET_EMAIL, "target-pass-1", "Target")
-        _ensure_user(db, OTHER_EMAIL, "other-pass-1", "Other")
     finally:
         db.close()
 
     with TestClient(app) as client:
-        admin_headers = _auth_headers(client, ADMIN_EMAIL, "admin-pass-1")
-        other_headers = _auth_headers(client, OTHER_EMAIL, "other-pass-1")
-
-        forbidden = client.post(
-            "/api/auth/admin/password-reset",
-            headers=other_headers,
-            json={"email": TARGET_EMAIL, "new_password": "target-pass-2"},
-        )
-        assert forbidden.status_code == 403, forbidden.text
+        actor_headers = _auth_headers(client, actor_email, "staff-pass-1")
 
         missing = client.post(
             "/api/auth/admin/password-reset",
-            headers=admin_headers,
+            headers=actor_headers,
             json={"email": "nobody@m2solution.com", "new_password": "whatever12"},
         )
         assert missing.status_code == 404, missing.text
 
         same = client.post(
             "/api/auth/admin/password-reset",
-            headers=admin_headers,
+            headers=actor_headers,
             json={"email": TARGET_EMAIL, "new_password": "target-pass-1"},
         )
         assert same.status_code == 400, same.text
 
         ok = client.post(
             "/api/auth/admin/password-reset",
-            headers=admin_headers,
+            headers=actor_headers,
             json={"email": TARGET_EMAIL, "new_password": "target-pass-2"},
         )
         assert ok.status_code == 204, ok.text
 
         self_ok = client.post(
             "/api/auth/admin/password-reset",
-            headers=admin_headers,
-            json={"email": ADMIN_EMAIL, "new_password": "admin-pass-2"},
+            headers=actor_headers,
+            json={"email": actor_email, "new_password": "staff-pass-2"},
         )
         assert self_ok.status_code == 204, self_ok.text
 
@@ -93,34 +84,31 @@ def main() -> None:
         )
         assert login_target.status_code == 200, login_target.text
 
-        login_admin = client.post(
+        login_actor = client.post(
             "/api/auth/login",
-            json={"email": ADMIN_EMAIL, "password": "admin-pass-2"},
+            json={"email": actor_email, "password": "staff-pass-2"},
         )
-        assert login_admin.status_code == 200, login_admin.text
+        assert login_actor.status_code == 200, login_actor.text
 
     db = SessionLocal()
     try:
         target = db.scalar(select(User).where(User.email == TARGET_EMAIL))
         assert target is not None
         assert verify_password("target-pass-2", target.password_hash)
-        other = db.scalar(select(User).where(User.email == OTHER_EMAIL))
-        if other is not None:
-            db.delete(other)
         db.delete(target)
 
-        admin = db.scalar(select(User).where(User.email == ADMIN_EMAIL))
-        assert admin is not None
-        if admin_created:
-            db.delete(admin)
-        elif admin_previous is not None:
-            admin.password_hash = admin_previous
-            db.add(admin)
+        actor = db.scalar(select(User).where(User.email == actor_email))
+        assert actor is not None
+        if actor_created:
+            db.delete(actor)
+        elif actor_previous is not None:
+            actor.password_hash = actor_previous
+            db.add(actor)
         db.commit()
     finally:
         db.close()
 
-    print("admin password reset checks passed")
+    print("staff password reset checks passed")
 
 
 if __name__ == "__main__":

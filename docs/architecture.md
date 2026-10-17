@@ -64,7 +64,7 @@ Tables are created on API startup (`Base.metadata.create_all`). Alembic migratio
 | `CORS_ORIGINS` | Prod browser origins |
 | `DEV_PUBLIC_APP_URL` / `DEV_CORS_ORIGINS` | Dev stack only (`http://localhost:5173`) |
 | `PROD_WEB_PUBLISH` | Prod `web` publish address (default `10.50.0.2:8081`; 8080 is Wings) |
-| `SEED_EMAIL` / `SEED_PASSWORD` | Staff users created if missing (per database). `SEED_EMAIL` is comma-separated; default `matcote111@gmail.com,mathieu.laureti@gmail.com`. The old `admin@m2solution.com` value is ignored and the two Gmail accounts are seeded instead |
+| `SEED_EMAIL` / `SEED_PASSWORD` | Staff users created if missing (per database). Comma-separated Gmail defaults in `config.py`. Dev full reset: `python -m app.seeds` ([dev-seeding.md](features/dev-seeding.md)) |
 | `COMPANY_*` | Name, email, address, phone on the public invoice |
 | `FILES_ROOT` | Host path for prod file blobs (container `/data/files`). Default `/mnt/data_main/m2solution_crm/files` |
 | `DEV_FILES_ROOT` | Host path for dev file blobs. Default `/mnt/data_main/m2solution_crm/files_dev` |

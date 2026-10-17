@@ -29,7 +29,6 @@ from app.schemas.auth import (
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 logger = logging.getLogger(__name__)
 
-ADMIN_EMAIL = "admin@m2solution.com"
 GOOGLE_AUTHORIZE_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
 GOOGLE_USERINFO_URL = "https://openidconnect.googleapis.com/v1/userinfo"
@@ -70,8 +69,6 @@ def admin_password_reset(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> None:
-    if current_user.email.lower() != ADMIN_EMAIL:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin only")
     target = db.scalar(select(User).where(User.email == body.email.lower()))
     if target is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")

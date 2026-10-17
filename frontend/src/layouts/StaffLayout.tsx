@@ -6,8 +6,6 @@ import { useAuth } from '../auth/AuthContext'
 import { TeamProvider, useTeam } from '../team/TeamContext'
 import { useTheme } from '../theme/ThemeContext'
 
-const ADMIN_EMAIL = 'admin@m2solution.com'
-
 const links = [
   { to: '/dashboard', label: 'Dashboard' },
   { to: '/clients', label: 'Clients' },
@@ -41,7 +39,6 @@ function StaffShell() {
   const [resetSaving, setResetSaving] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
-  const isAdmin = (user?.email ?? '').toLowerCase() === ADMIN_EMAIL
   const activeTeam = teams.find((t) => t.id === teamId)
 
   useEffect(() => {
@@ -225,15 +222,13 @@ function StaffShell() {
                 >
                   Change password
                 </button>
-                {isAdmin ? (
-                  <button
-                    type="button"
-                    onClick={openReset}
-                    className="block w-full rounded-lg px-2 py-1.5 text-left text-sm text-ink/70 hover:bg-ink/10 hover:text-ink"
-                  >
-                    Reset staff password
-                  </button>
-                ) : null}
+                <button
+                  type="button"
+                  onClick={openReset}
+                  className="block w-full rounded-lg px-2 py-1.5 text-left text-sm text-ink/70 hover:bg-ink/10 hover:text-ink"
+                >
+                  Reset staff password
+                </button>
                 <Link
                   to="/teams"
                   className="block rounded-lg px-2 py-1.5 text-sm text-ink/70 hover:bg-ink/10 hover:text-ink"
