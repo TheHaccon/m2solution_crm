@@ -25,6 +25,10 @@ Routes and what the user clicks.
 
 Main backend and frontend files touched.
 
+## Dev seed
+
+- [ ] `backend/app/seeds/` demo row(s) + `registry.py` + note in [dev-seeding.md](dev-seeding.md)
+
 ## Follow-ups / out of scope
 
 Anything deliberately not built.

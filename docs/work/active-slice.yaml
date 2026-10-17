@@ -1,27 +1,27 @@
 version: 2
 repo: TheHaccon/m2solution_crm
-feature_slug: timer-stop-note
-input_doc: docs/input/2026-10-06-timer-stop-note.md
+feature_slug: dev-reseed
+input_doc: docs/input/2026-10-17-dev-reseed.md
 delivery_mode: single
-phase: merged
+phase: pr_open
 gates:
   gate_1:
-    approved_at: "2026-10-06T14:04:00-04:00"
-    user_quote: "create"
+    approved_at: "2026-10-17T13:10:00-04:00"
+    user_quote: "Implement the plan as specified"
   gate_2:
-    approved_at: "2026-10-06T14:10:00-04:00"
-    user_quote: "one pr"
+    approved_at: "2026-10-17T13:10:00-04:00"
+    user_quote: "Implement the plan as specified"
 issues:
-  - number: 24
-    url: https://github.com/TheHaccon/m2solution_crm/issues/24
-    title: "[time] Prompt for an optional note when stopping the timer"
-branch: feature/timer-stop-note
+  - number: 26
+    url: https://github.com/TheHaccon/m2solution_crm/issues/26
+    title: "[dev] Reseed crm_dev with demo data and seed-data discipline"
+branch: feature/dev-reseed
 pr:
-  number: 25
-  url: https://github.com/TheHaccon/m2solution_crm/pull/25
-  state: merged
-delivery_report: docs/delivery/24-timer-stop-note.md
+  number: 27
+  url: https://github.com/TheHaccon/m2solution_crm/pull/27
+  state: open
+delivery_report: docs/delivery/26-dev-reseed.md
 labels:
   managed: agent-managed
-updated_at: "2026-10-06T14:34:12-04:00"
+updated_at: "2026-10-17T13:12:00-04:00"
 updated_by: orchestrator

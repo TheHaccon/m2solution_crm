@@ -4,6 +4,7 @@ from datetime import date, datetime, timezone
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
+from app.core.config import settings
 from app.core.database import SessionLocal
 from app.core.security import hash_password
 from app.main import app
@@ -12,7 +13,8 @@ from app.models import TeamMember, User
 
 def main() -> None:
     with TestClient(app) as client:
-        login = client.post("/api/auth/login", json={"email": "admin@m2solution.com", "password": "changeme"})
+        seed_email = settings.seed_email_list[0]
+        login = client.post("/api/auth/login", json={"email": seed_email, "password": settings.seed_password})
         assert login.status_code == 200, login.text
         token = login.json()["access_token"]
         headers = {"Authorization": f"Bearer {token}"}

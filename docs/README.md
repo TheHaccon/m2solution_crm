@@ -26,6 +26,7 @@ Internal CRM for billing and client meeting notes. Staff sign in. Clients do **n
 | Docker | [features/docker.md](features/docker.md) |
 | Postgres | [features/postgres.md](features/postgres.md) |
 | Shared Postgres (host cluster) | [features/shared-postgres.md](features/shared-postgres.md) |
+| Dev seeding (crm_dev reset) | [features/dev-seeding.md](features/dev-seeding.md) |
 | Postgres replica / failover | [features/backups.md](features/backups.md) |
 
 ## Also read
